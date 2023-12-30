@@ -1,0 +1,28 @@
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Debug - MSM Mod Launcher</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="./css/photon.min.css">
+
+    <style>
+        nav ul{height:200px; width:18%;}
+        nav ul{overflow:hidden; overflow-y:scroll;}
+    </style>
+
+    <!-- Javascript -->
+  </head>
+  <body>
+    <div class="window">
+        <p id="debugOut"></p>
+    </div>
+    <script>
+        window.api.receive("fromMain", (data) => {
+            document.getElementById("debugOut").innerHTML += `${data}<br>`;
+        })
+    </script>
+  </body>
+</html>

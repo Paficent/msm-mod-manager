@@ -1,0 +1,28 @@
+{
+    "name": "launcher",
+    "productName": "MSM Mod Launcher",
+    "version": "1.0.0",
+    "description": "A simple template app for Proton",
+    "main": "app.js",
+    "author": "Paficent",
+    "scripts": {
+        "start": "electron .",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder"
+    },
+    "devDependencies": {
+        "electron": "^28.1.0",
+        "electron-builder": "^24.9.1"
+    },
+    "dependencies": {
+        "@iarna/toml": "^2.2.5"
+    },
+    "build": {
+        "appId": "com.Paficent.ModLauncher",
+        "files": [
+            "!settings.json",
+            "!mods${/*}",
+            "!tmp${/*}"
+        ]
+    }
+}

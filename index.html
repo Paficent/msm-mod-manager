@@ -1,0 +1,95 @@
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>MSM Mod Launcher</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="./css/photon.min.css">
+
+    <style>
+        nav ul{height:200px; width:18%;}
+        nav ul{overflow:hidden; overflow-y:scroll;}
+    </style>
+
+    <!-- Javascript -->
+  </head>
+  <body>
+    <div class="window">
+        <header class="toolbar toolbar-header">
+            <h1 class="title">MSM Mod Launcher v0.0.1 ALPHA</h1>
+          
+            <div class="toolbar-actions">
+                <div class="btn-group">
+                    <button class="btn btn-default">
+                        <span class="icon icon-home icon-text"></span>
+                        Launcher
+                    </button>
+                    <button class="btn btn-default">
+                        <span class="icon icon-tools icon-text"></span>
+                        Tools
+                    </button>
+                    <button class="btn btn-default">
+                        <span class="icon icon-cog icon-text"></span>
+                        Settings
+                    </button>
+                </div>
+          
+                <button class="btn btn-default btn-dropdown pull-right">
+                    <span class="icon icon-help"></span>
+                </button>
+            </div>
+        </header>
+          
+        <nav>
+            <ul class="list-group" id="modList">
+                <li class="list-group-item" id="">
+                    <img class="img-circle media-object pull-left" id="___MSM___" src="" width="32" height="32">
+                    <div class="media-body">
+                        <div class="radio pull-right">
+                            <label>
+                                <input type="radio" name="radios" id="___MSM___" checked> &zwnj; 
+                            </label>
+                        </div>
+                        <strong>My Singing Monsters - The Monster Handlers</strong>
+                        <p>Revert Changes by Mods and Load a Vanilla MSM</p>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <footer class="toolbar toolbar-footer pull-bottom">
+            <div class="toolbar-actions">
+                <button class="btn btn-default" id="exitButton">
+                    Exit
+                </button>
+                <button class="btn btn-primary pull-right" id="launchButton">
+                    Launch
+                </button>
+            </div>
+        </footer>
+    </div>
+    <script>
+        var loc = window.location.pathname;
+        var dir = loc.substring(0, loc.lastIndexOf('/'));
+        document.getElementById("___MSM___").src = dir + "/assets/msm.png" //Set the image of the BBB, electron is weird when compiling into a binary, needs the full path name
+
+
+        document.getElementById("launchButton").addEventListener("click", function(){
+            var radios = document.getElementsByTagName('input');
+            var value;
+            for (var i = 0; i < radios.length; i++) {
+                if (radios[i].type === 'radio' && radios[i].checked) {
+                    value = radios[i]   
+                }
+            }
+            window.api.send("toMain", ["launchClicked", value.id]);
+        })
+        document.getElementById("exitButton").addEventListener("click", function(){
+            console.log('exit clicked')
+            window.api.send("toMain", ["exitClicked"]);
+        })
+</script>
+  </body>
+</html>
