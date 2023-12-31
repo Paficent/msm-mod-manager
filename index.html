@@ -64,6 +64,9 @@
                 <button class="btn btn-default" id="exitButton">
                     Exit
                 </button>
+                <button class="btn btn-default" id="refreshButton">
+                    Refresh
+                </button>
                 <button class="btn btn-primary pull-right" id="launchButton">
                     Launch
                 </button>
@@ -87,8 +90,10 @@
             window.api.send("toMain", ["launchClicked", value.id]);
         })
         document.getElementById("exitButton").addEventListener("click", function(){
-            console.log('exit clicked')
             window.api.send("toMain", ["exitClicked"]);
+        })
+        document.getElementById("refreshButton").addEventListener("click", function(){
+            window.api.send("toMain", ["refreshClicked"]);
         })
 </script>
   </body>
