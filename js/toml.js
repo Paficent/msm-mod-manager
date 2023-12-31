@@ -42,7 +42,7 @@ function generate(title, description, creator, version, modPath){
 
         }
     })
-    fs.writeFileSync(path.join(modPath, "info.toml"), toml.stringify(ast))
+    // fs.writeFileSync(path.join(modPath, "info.toml"), toml.stringify(ast))
     
 }
 module.exports = {

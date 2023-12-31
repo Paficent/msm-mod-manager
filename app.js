@@ -55,7 +55,6 @@ app.on('ready', function() {
     mainWindow.on('closed', function() {
         mainWindow = null;
     });
-    toml.generate('test title', 'test description', 'Paficent', '0', "C:\\Users\\jamie\\OneDrive\\Desktop\\My Singing Monsters Steamless\\ModLoader\\launcher\\mods\\MSMBB")
 });
 
 function log(message){
