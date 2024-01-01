@@ -4,6 +4,9 @@ const fs = require('fs')
 const path = require('path')
 const exec = require("child_process").exec
 
+// const { createCanvas, loadImage } = require('canvas');
+// const xml2js = require('xml2js');
+
 
 //Fix bug present when app is packed to executable
 var original_dir = __dirname
