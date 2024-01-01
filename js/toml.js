@@ -51,8 +51,7 @@ function generate(title, description, creator, version, modPath) {
             }
         }
 
-        // Uncomment the line below if you want to write the generated data to a TOML file
-        // fs.writeFileSync(path.join(modPath, 'info.toml'), toml.stringify(ast));
+        fs.writeFileSync(path.join(modPath, 'info.toml'), toml.stringify(ast));
     } catch (error) {
         console.error('Error generating data:', error);
         throw error;
