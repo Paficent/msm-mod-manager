@@ -1,5 +1,5 @@
 {
-    "executable_path": "C:\\Users\\jamie\\OneDrive\\Desktop\\My Singing Monsters Steamless\\MySingingMonsters.exe",
+    "executable_path": "", // Path to MySingingMonsters.exe
     "close_after_launch": false,
     "debug_mode": true
 }
