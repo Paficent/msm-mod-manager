@@ -1,52 +1,75 @@
-const fs = require('fs')
-const path = require('path')
-const toml = require('@iarna/toml')
-
-var settings = JSON.parse(fs.readFileSync("settings.json"))
+const fs = require('fs');
+const path = require('path');
+const toml = require('@iarna/toml');
 
 function readDirectory(directoryPath, baseDirectory = '') {
+    try {
+        const files = fs.readdirSync(directoryPath);
+        const out = [];
 
-    const files = fs.readdirSync(directoryPath);
-    var out = [];
-  
-    files.forEach((file) => {
-        const filePath = path.join(directoryPath, file);
-        const stats = fs.statSync(filePath);
-    
-        if (stats.isDirectory()) {
-            recursiveFiles = readDirectory(filePath, path.join(baseDirectory, file));
-            recursiveFiles.forEach((x) => {
-                out.push(x)
-            })
-        } else {
-            out.push(path.join(baseDirectory, file))
+        for (const file of files) {
+            const filePath = path.join(directoryPath, file);
+            const stats = fs.statSync(filePath);
+
+            if (stats.isDirectory()) {
+                const recursiveFiles = readDirectory(filePath, path.join(baseDirectory, file));
+                out.push(...recursiveFiles);
+            } else {
+                out.push(path.join(baseDirectory, file));
+            }
         }
-    });
 
-    return out
+        return out;
+    } catch (error) {
+        console.error(`Error reading directory: ${directoryPath}`, error);
+        throw error;
+    }
 }
 
-function generate(title, description, creator, version, modPath){
-    const msm_dir = settings.executable_path.substring(0, settings.executable_path.lastIndexOf('\\'))
-    const files = readDirectory(path.join(modPath, 'assets'))
+function generate(title, description, creator, version, modPath) {
+    try {
+        const msmDir = path.dirname(settings.executable_path);
+        const assetsPath = path.join(modPath, 'assets');
+        const files = readDirectory(assetsPath);
 
-    var ast = {'title': title, 'description': description, 'creator': creator, 'version': version, 'assets': {}}
-    var assets = ast.assets
-    var counter = 1
-    files.forEach((fileName) => {
-        fileName = fileName.split("\\").join("/")
-        if(fs.existsSync(path.join(msm_dir, "data", fileName))) {
-            assets[counter] =  [fileName, fileName];
-            counter++;
-        } else {
+        const ast = {
+            title,
+            description,
+            creator,
+            version,
+            assets: {}
+        };
 
+        let counter = 1;
+
+        for (const fileName of files) {
+            const normalizedFileName = fileName.split(path.sep).join('/');
+
+            if (fileExistsSync(path.join(msmDir, 'data', normalizedFileName))) {
+                ast.assets[counter] = [normalizedFileName, normalizedFileName];
+                counter++;
+            }
         }
-    })
-    // fs.writeFileSync(path.join(modPath, "info.toml"), toml.stringify(ast))
-    
+
+        // Uncomment the line below if you want to write the generated data to a TOML file
+        // fs.writeFileSync(path.join(modPath, 'info.toml'), toml.stringify(ast));
+    } catch (error) {
+        console.error('Error generating data:', error);
+        throw error;
+    }
 }
+
+function fileExistsSync(filePath) {
+    try {
+        fs.accessSync(filePath);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
 module.exports = {
-    'parse': toml.parse,
-    'stringify': toml.stringify,
-    'generate': generate
-}
+    parse: toml.parse,
+    stringify: toml.stringify,
+    generate: generate
+};

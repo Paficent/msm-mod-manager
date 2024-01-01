@@ -147,10 +147,6 @@ function launchGame(){
 function generateToml(name){
 
 }
-
-function packSprite(){
-    //unimplemented
-}
   
 
 function replaceAssets(name){
