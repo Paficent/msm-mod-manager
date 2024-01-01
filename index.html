@@ -1,61 +1,90 @@
-
-
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <title>MSM Mod Launcher</title>
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="./css/photon.min.css">
 
     <style>
-        nav ul{height:200px; width:18%;}
-        nav ul{overflow:hidden; overflow-y:scroll;}
+        nav ul {
+            height: 200px;
+            width: 18%;
+        }
+
+        nav ul {
+            overflow: hidden;
+            overflow-y: scroll;
+        }
     </style>
 
     <!-- Javascript -->
-  </head>
-  <body>
+</head>
+
+<body>
     <div class="window">
         <header class="toolbar toolbar-header">
             <h1 class="title">MSM Mod Launcher v0.0.1 ALPHA</h1>
-          
+
             <div class="toolbar-actions">
                 <div class="btn-group">
-                    <button class="btn btn-default">
+                    <button class="btn btn-default" id="home">
                         <span class="icon icon-home icon-text"></span>
                         Launcher
                     </button>
-                    <button class="btn btn-default">
+                    <button class="btn btn-default" id="tools">
                         <span class="icon icon-tools icon-text"></span>
                         Tools
                     </button>
-                    <button class="btn btn-default">
+                    <button class="btn btn-default" id='settings'>
                         <span class="icon icon-cog icon-text"></span>
                         Settings
                     </button>
                 </div>
-          
+
                 <button class="btn btn-default btn-dropdown pull-right">
                     <span class="icon icon-help"></span>
                 </button>
             </div>
         </header>
-          
-        <nav>
-            <ul class="list-group" id="modList">
+
+        <nav id="listPages">
+            <ul class="list-group" id="modList" style="display: none;">
                 <li class="list-group-item" id="">
                     <img class="img-circle media-object pull-left" id="___MSM___" src="" width="32" height="32">
                     <div class="media-body">
-                        <div class="radio pull-right">
+                        <div class="checkbox pull-right">
                             <label>
-                                <input type="radio" name="radios" id="___MSM___" checked> &zwnj; 
+                                <input type="checkbox" id="___MSM___" checked> &zwnj;
                             </label>
                         </div>
                         <strong>My Singing Monsters - The Monster Handlers</strong>
                         <p>Revert Changes by Mods and Load a Vanilla MSM</p>
                     </div>
                 </li>
+            </ul>
+            <ul class="list-group" id="settingsList" style="display: block;">
+                <li class="list-group-item" id="">
+                    <div class="form-group">
+                        <label>Executable path</label><br>
+                        <input style="width: 300px; box-shadow: none;" type="email" class="form-control" placeholder="Path to MySingingMonsters.exe">
+                    </div>
+                    <br>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox"> Debug mode
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox"> Close launcher after launch
+                        </label>
+                    </div>
+                </li>
+            </ul>
+            <ul class="list-group" id="toolsList" style="display: none;">
+
             </ul>
         </nav>
 
@@ -77,24 +106,41 @@
         var loc = window.location.pathname;
         var dir = loc.substring(0, loc.lastIndexOf('/'));
         document.getElementById("___MSM___").src = dir + "/assets/msm.png" //Set the image of the BBB, electron is weird when compiling into a binary, needs the full path name
-
-
-        document.getElementById("launchButton").addEventListener("click", function(){
+        var settingsList = document.getElementById("settingsList");
+        var modList = document.getElementById("modList");
+        var toolsList = document.getElementById("toolsList");
+        document.getElementById("home").addEventListener("click", function () {
+            settingsList.style.display = "none";
+            modList.style.display = "block";
+            toolsList.style.display = "none";
+        });
+        document.getElementById("tools").addEventListener("click", function () {
+            settingsList.style.display = "none";
+            modList.style.display = "none";
+            toolsList.style.display = "block";
+        });
+        document.getElementById("settings").addEventListener("click", function () {
+            settingsList.style.display = "block";
+            modList.style.display = "none";
+            toolsList.style.display = "none";
+        });
+        document.getElementById("launchButton").addEventListener("click", function () {
             var radios = document.getElementsByTagName('input');
             var value;
             for (var i = 0; i < radios.length; i++) {
                 if (radios[i].type === 'radio' && radios[i].checked) {
-                    value = radios[i]   
+                    value = radios[i]
                 }
             }
             window.api.send("toMain", ["launchClicked", value.id]);
         })
-        document.getElementById("exitButton").addEventListener("click", function(){
+        document.getElementById("exitButton").addEventListener("click", function () {
             window.api.send("toMain", ["exitClicked"]);
         })
-        document.getElementById("refreshButton").addEventListener("click", function(){
+        document.getElementById("refreshButton").addEventListener("click", function () {
             window.api.send("toMain", ["refreshClicked"]);
         })
-</script>
-  </body>
+    </script>
+</body>
+
 </html>
