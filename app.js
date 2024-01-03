@@ -1,40 +1,62 @@
-const {app, BrowserWindow, ipcMain, dialog} = require('electron')
-const { toml, sprite } = require('./js')
-const fs = require('fs')
-const path = require('path')
-const exec = require("child_process").exec
-
-// const { createCanvas, loadImage } = require('canvas');
-// const xml2js = require('xml2js');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { toml, logger, sprite} = require('./js');
+const fs = require('fs');
+const path = require('path');
+const { exec } = require('child_process');
 
 
-//Fix bug present when app is packed to executable
-var original_dir = __dirname
-var isPackaged = false
-if(__dirname.substring(__dirname.lastIndexOf('\\')) == "\\app.asar"){
-    isPackaged = true
-    __dirname = __dirname.substring(0, __dirname.lastIndexOf('\\')) // DO NOT REMOVE
-    __dirname = __dirname.substring(0, __dirname.lastIndexOf('\\')) // DO NOT REMOVE
+let isPacked = false;
+let originalDir = __dirname;
+
+if (__dirname.endsWith(path.sep + 'app.asar')) {
+    __dirname = __dirname.substring(0, __dirname.lastIndexOf(path.sep));
+    isPacked = true;
+    originalDir = __dirname.substring(0, __dirname.lastIndexOf(path.sep));
 }
 
-if(!fs.existsSync("settings.json")){
-    fs.writeFileSync("settings.json", JSON.stringify({
-        "executable_path": ""
-    }))
+
+const settingsPath = "settings.json";
+
+function readSettings() {
+    try {
+        const content = fs.readFileSync(settingsPath, 'utf-8');
+        return JSON.parse(content);
+    } catch (error) {
+        logger.error("Error reading settings file:", error);
+        return null;
+    }
 }
 
-var settings = JSON.parse(fs.readFileSync("settings.json"))
+function writeSettings(settings) {
+    try {
+        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+    } catch (error) {
+        logger.error("Error writing settings file:", error);
+    }
+}
+
+function createSettingsFileIfNotExists() {
+    try {
+        if (!fs.existsSync(settingsPath)) {
+            fs.writeFileSync(settingsPath, JSON.stringify({ "executable_path": "" }, null, 2));
+        }
+    } catch (error) {
+        logger.error("Error checking/creating settings file:", error);
+    }
+}
+
 var mainWindow = null;
-var debugWindow = null;
 
-// Quit when all windows are closed.
-app.on('window-all-closed', function() {
-  if (process.platform != 'darwin') {
-    app.quit();
-  }
+
+app.on('window-all-closed', function () {
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
 });
 
-app.on('ready', function() {
+app.on('ready', function () {
+    createSettingsFileIfNotExists();
+
     mainWindow = new BrowserWindow({
         width: 590,
         height: 290,
@@ -44,158 +66,186 @@ app.on('ready', function() {
         'accept-first-mouse': true,
         'title-bar-style': 'hidden',
         webPreferences: {
-            // devTools: false
             nodeIntegration: false,
-            enableRemoteModule: false, // turn off remote
-            contextIsolation: true, // protect against prototype pollution
-            preload: path.join(original_dir, "js", "preload.js") // use a preload script
+            enableRemoteModule: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, "js", "preload.js")
         },
     });
+
     mainWindow.setResizable(false);
     mainWindow.loadFile('index.html');
-    populateList()
 
-    mainWindow.on('closed', function() {
+    populateList();
+
+    mainWindow.on('closed', function () {
         mainWindow = null;
     });
 });
 
-function log(message){
-    if (settings.debugMode == true){
-        console.log(message)
-    }
-}
 
-function populateList(){
-    let modsPath = path.join(__dirname, '/mods')
-    if(!fs.existsSync(modsPath)){
-        fs.mkdirSync(modsPath)
-    }
-    let mods = fs.readdirSync(modsPath)
+function populateList() {
+    try {
+        const modsPath = path.join(originalDir, "mods");
 
-    mods.forEach(mod => {
-        let p = path.join(modsPath, mod)
-        let tomlfile = path.join(p, 'info.toml')
-        if(fs.existsSync(tomlfile)){
-            data = toml.parse(fs.readFileSync(tomlfile).toString())
-            if (isPackaged){ // Fix icon bug that occurs when app is packaged
-                mainWindow.webContents.executeJavaScript(
-                    `document.getElementById("modList").innerHTML += '<li class="list-group-item"><img class="img-circle media-object pull-left" src="../mods/${mod}/icon.png" width="32" height="32"><div class="media-body"><div class="radio pull-right"><label><input type="radio" name="radios" id="mods/${mod}"> &zwnj; </label></div><strong>${data.title} (v${data.version}) - ${data.creator}</strong><p>${data.description}</p></div></li>'`
-                )
-            } else {
-                mainWindow.webContents.executeJavaScript(
-                    `document.getElementById("modList").innerHTML += '<li class="list-group-item"><img class="img-circle media-object pull-left" src="./mods/${mod}/icon.png" width="32" height="32"><div class="media-body"><div class="radio pull-right"><label><input type="radio" name="radios" id="mods/${mod}"> &zwnj; </label></div><strong>${data.title} (v${data.version}) - ${data.creator}</strong><p>${data.description}</p></div></li>'`
-                )
+        if (!fs.existsSync(modsPath)) {
+            fs.mkdirSync(modsPath);
+        }
+
+        const mods = fs.readdirSync(modsPath);
+
+        for (const mod of mods) {
+            const p = path.join(modsPath, mod);
+            const tomlfile = path.join(p, 'info.toml');
+
+            if (fs.existsSync(tomlfile)) {
+                const data = toml.parse(fs.readFileSync(tomlfile, 'utf-8'));
+
+                mainWindow.webContents.executeJavaScript(`
+                    document.getElementById("modList").innerHTML += '<li class="list-group-item"><img class="img-circle media-object pull-left" src="./mods/${mod}/icon.png" width="32" height="32"><div class="media-body"><div class="radio pull-right"><label><input type="radio" name="radios" id="mods/${mod}"> &zwnj; </label></div><strong>${data.title} (v${data.version}) - ${data.creator}</strong><p>${data.description}</p></div></li>'
+                `);
             }
         }
-    });
+    } catch (error) {
+        logger.error("Error populating list:", error);
+    }
 }
 
-function fixGame(){
-    let tmpPath = path.join(__dirname, "/tmp")
-    let fixPath = path.join(tmpPath, "fix.toml")
-    if(!fs.existsSync(tmpPath)){
-        fs.mkdirSync(tmpPath)
-    }
-    if(!fs.existsSync(fixPath)){
-        fs.writeFileSync(fixPath, "")
-    }
 
-    let fix = toml.parse(fs.readFileSync(fixPath).toString())
-    let assets = fix.assets
-    var msm_dir = settings.executable_path.substring(0, settings.executable_path.lastIndexOf('\\'))
 
-    if(assets){
-        assets.forEach(items => {
-            log(`Fixing ${items[1]}`)
-            var newBuffer = fs.readFileSync(path.join(tmpPath, items[0]))
-            fs.writeFileSync(path.join(msm_dir, "data" , items[1]), newBuffer)
+function fixGame(settings) {
+    try {
+        const tmpPath = path.join(__dirname, "/tmp");
+        const fixPath = path.join(tmpPath, "fix.toml");
+
+        if (!fs.existsSync(tmpPath)) {
+            fs.mkdirSync(tmpPath);
+        }
+
+        if (!fs.existsSync(fixPath)) {
+            fs.writeFileSync(fixPath, "");
+        }
+
+        const fix = toml.parse(fs.readFileSync(fixPath).toString());
+        const assets = fix.assets;
+        const msm_dir = settings.executable_path.substring(0, settings.executable_path.lastIndexOf('\\'));
+
+        if (assets) {
+            assets.forEach(items => {
+                try {
+                    logger.info(`Fixing ${items[1]}`);
+                    const newBuffer = fs.readFileSync(path.join(tmpPath, items[0]));
+                    fs.writeFileSync(path.join(msm_dir, "data", items[1]), newBuffer);
+                } catch (writeError) {
+                    logger.error(`Error writing file ${items[1]}: ${writeError.message}`);
+                }
+            });
+        }
+
+        // Clean Tmp
+        const tmpContents = fs.readdirSync(tmpPath);
+        tmpContents.forEach(fileName => {
+            const filePath = path.join(tmpPath, fileName);
+            try {
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                }
+            } catch (deleteError) {
+                logger.error(`Error deleting file ${fileName}: ${deleteError.message}`);
+            }
         });
-    }
-
-    // Clean Tmp
-    let tmpContents = fs.readdirSync(tmpPath)
-    tmpContents.forEach(fileName => {
-        let file_path = path.join(tmpPath, fileName)
-        if(fs.existsSync(file_path)){
-            fs.unlinkSync(file_path)
-        }
-    });
-}
-
-function launchGame(){
-    if(settings.executable_path == ""){
-        dialog.showMessageBox(mainWindow, {
-            "title": "Error",
-            "message": "Couldn't find MySingingMonsters.exe.\nInput the MySingingMonsters.exe path in the settings menu.",
-            "buttons": ["OK"]
-        })
-    }else if(!fs.existsSync(settings.executable_path)){
-        dialog.showMessageBox(mainWindow, {
-            "title": "Error",
-            "message": "The path to MySingingMonsters.exe has changed.\nInput the MySingingMonsters.exe path in the settings menu.",
-            "buttons": ["OK"]
-        })
-    } else {
-        exec(`cmd /K "${settings.executable_path}"`)
-        if(settings.close_after_launch){
-            mainWindow.close();
-        }
+    } catch (error) {
+        logger.error(`Error in fixGame: ${error.message}`);
     }
 }
 
-function generateToml(name){
-
-}
-  
-
-function replaceAssets(name){
-    let modPath = path.join(__dirname, name)
-    var msm_dir = settings.executable_path.substring(0, settings.executable_path.lastIndexOf('\\'))
-    var info = toml.parse(fs.readFileSync(path.join(modPath, "info.toml")).toString())
-    var assets = info.assets
-    
-    var replace = {'assets': []}
-    for (const key in assets) {
-        var paths = assets[key]
-        if(key == "toPack"){
-            packSprite()
+function launchGame(settings) {
+    try {
+        if (settings.executable_path === "") {
+            dialog.showMessageBox(mainWindow, {
+                "title": "Error",
+                "message": "Couldn't find MySingingMonsters.exe.\nInput the MySingingMonsters.exe path in the settings menu.",
+                "buttons": ["OK"]
+            });
+        } else if (!fs.existsSync(settings.executable_path)) {
+            dialog.showMessageBox(mainWindow, {
+                "title": "Error",
+                "message": "The path to MySingingMonsters.exe has changed.\nInput the MySingingMonsters.exe path in the settings menu.",
+                "buttons": ["OK"]
+            });
         } else {
-            let toCopy = path.join(modPath, "assets/" + paths[0])
-            let toReplace = path.join(msm_dir, "data", paths[1])
-            let toReplace_simplified = paths[1].substring(paths[1].lastIndexOf('/'))
-            let tmpPath = path.join(__dirname, "/tmp", toReplace_simplified)
-            let newBuffer = fs.readFileSync(toCopy);
+            exec(`cmd /K "${settings.executable_path}"`);
 
-            log(`Replacing ${toReplace_simplified}`)
-
-            fs.copyFileSync(toReplace, tmpPath)
-            fs.writeFileSync(toReplace, newBuffer)
-
-            replace.assets.push([toReplace_simplified, paths[1]])
+            if (settings.close_after_launch) {
+                mainWindow.close();
+            }
         }
+    } catch (error) {
+        logger.error("Error launching the game:", error);
     }
-    fs.writeFileSync(path.join(__dirname, "tmp", "fix.toml"), toml.stringify(replace))
+}
+
+function replaceAssets(name, settings) {
+    try {
+        const modPath = path.join(__dirname, name);
+        const msm_dir = settings.executable_path.substring(0, settings.executable_path.lastIndexOf('\\'));
+        const infoContent = fs.readFileSync(path.join(modPath, "info.toml"), 'utf-8');
+        const info = toml.parse(infoContent);
+        const assets = info.assets;
+
+        const replace = { 'assets': [] };
+
+        for (const key in assets) {
+            const paths = assets[key];
+
+            if (key === "toPack") {
+                packSprite();
+            } else {
+                const toCopy = path.join(modPath, "assets/" + paths[0]);
+                const toReplace = path.join(msm_dir, "data", paths[1]);
+                const toReplaceSimplified = paths[1].substring(paths[1].lastIndexOf('/'));
+                const tmpPath = path.join(__dirname, "/tmp", toReplaceSimplified);
+                const newBuffer = fs.readFileSync(toCopy);
+
+                logger.info(`Replacing ${toReplaceSimplified}`);
+
+                if (fs.existsSync(toReplace)) {
+                    fs.copyFileSync(toReplace, tmpPath);
+                    fs.writeFileSync(toReplace, newBuffer);
+
+                    replace.assets.push([toReplaceSimplified, paths[1]]);
+                } else {
+                    logger.error(`Error: Target file ${toReplace} not found`);
+                }
+            }
+        }
+
+        fs.writeFileSync(path.join(__dirname, "tmp", "fix.toml"), toml.stringify(replace));
+    } catch (error) {
+        logger.error("Error replacing assets:", error);
+    }
 }
 
 
-ipcMain.on("toMain", (event, args) => {
-    settings = JSON.parse(fs.readFileSync("settings.json")) //Update Settings after every event
+ipcMain.on("toMain", function (event, args) {
+    try {
+        const currentSettings = readSettings();
 
-    if(args[0] == "exitClicked"){
-        mainWindow.close();  // Exit the window
-    } else if (args[0] == "refreshClicked"){
-        // Remove everything but vanilla install
-        mainWindow.webContents.executeJavaScript(`document.getElementById("modList").innerHTML = '<li class="list-group-item" id=""><img class="img-circle media-object pull-left" id="___MSM___" src="" width="32" height="32"><div class="media-body"><div class="radio pull-right"><label><input type="radio" name="radios" id="___MSM___" checked> &zwnj; </label></div><strong>My Singing Monsters - The Monster Handlers</strong><p>Revert Changes by Mods and Load a Vanilla MSM</p></div></li>'`)
-        populateList()
-    } else if(args[0] == "launchClicked"){
-        fixGame(); // Always Fix the Game First
+        if (args[0] === "exitClicked") {
+            mainWindow.close();
+        } else if (args[0] === "refreshClicked") {
+            mainWindow.webContents.executeJavaScript(`document.getElementById("modList").innerHTML = \`<li class="list-group-item" id=""><img class="img-circle media-object pull-left" id="___MSM___" src="${encodeURI(path.join(__dirname, "assets", "bbb.png").replaceAll(path.sep, "/"))}" width="32" height="32"><div class="media-body"><div class="checkbox pull-right"><label><input type="checkbox" id="___MSM___" checked> &zwnj;</label></div><strong>My Singing Monsters - The Monster Handlers</strong><p>Revert Changes by Mods and Load a Vanilla MSM</p></div></li>\``);
+            populateList(mainWindow);
+        } else if (args[0] === "launchClicked") {
+            fixGame(currentSettings);
 
-        if(args[1] !== "___MSM___"){ // If it's not the vanilla version
-            //replaceAssets
-            replaceAssets(args[1]);
+            if (args[1] !== "___MSM___") {
+                replaceAssets(args[1], currentSettings);
+            }
+
+            launchGame(currentSettings);
         }
-        
-        launchGame(); // Always launch the game afterwards
+    } catch (error) {
+        logger.error("Error in IPC Main:", error);
     }
 });
