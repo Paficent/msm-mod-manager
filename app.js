@@ -134,7 +134,7 @@ function handleSettingsChange(currentSettings, setting, value){
     writeSettings(currentSettings);
     switch (setting) { // Unimplemented
         case "debug_mode":
-            //Unimplemented
+            break; // Unimplemented
     }
 }
 
@@ -147,6 +147,7 @@ ipcMain.on("toMain", function (event, args) {
         } else if (args[0] === "refreshClicked") {            
             // Make the list contents nothing, then refresh it (only really used if you add a mod while the launcher is open)
             mainWindow.webContents.executeJavaScript(`document.getElementById("modList").innerHTML = ""`);
+
             populateList(mainWindow);
         } else if (args[0] === "launchClicked") {
             manager.replaceAssets(JSON.parse(args[1]), currentSettings, __dirname, originalDir);
