@@ -1,5 +1,7 @@
 {
-    "executable_path": "", // Path to MySingingMonsters.exe
-    "close_after_launch": false,
-    "debug_mode": true
+  "executable_path": "",
+  "debug_mode": true,
+  "ignore_conflicts": true,
+  "disable_unsafe_lua_functions": true,
+  "close_after_launch": false
 }

@@ -1,10 +1,11 @@
 {
     "name": "launcher",
-    "productName": "MSM Mod Launcher",
+    "productName": "MSM Mod Manager",
     "version": "1.0.0",
     "description": "A simple template app for Proton",
     "main": "app.js",
     "author": "Paficent",
+    "repository": "https://github.com/Paf1cent/msm-mod-loader",
     "scripts": {
         "start": "electron .",
         "pack": "electron-builder --dir",
@@ -16,15 +17,24 @@
     },
     "dependencies": {
         "@iarna/toml": "^2.2.5",
-        "canvas": "^2.11.2",
-        "xml2js": "^0.6.2"
+        "jimp": "^0.3.5",
+        "winston": "^3.11.0",
+        "xml-js": "^1.6.11"
     },
     "build": {
         "appId": "com.Paficent.ModLauncher",
+        "productName": "MSM Mod Manager",
+        "win": {
+            "target": "msi"
+        },
         "files": [
             "!settings.json",
             "!mods${/*}",
             "!tmp${/*}"
         ]
-    }
+    },
+    "extraFiles": [
+        "fonts",
+        "assets"
+    ]
 }

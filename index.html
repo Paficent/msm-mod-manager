@@ -18,8 +18,6 @@
             overflow-y: scroll;
         }
     </style>
-
-    <!-- Javascript -->
 </head>
 
 <body>
@@ -29,20 +27,19 @@
 
             <div class="toolbar-actions">
                 <div class="btn-group">
-                    <button class="btn btn-default" id="home">
+                    <button class="btn btn-default" id="homeButton">
                         <span class="icon icon-home icon-text"></span>
                         Launcher
                     </button>
-                    <button class="btn btn-default" id="tools">
+                    <button class="btn btn-default" id="toolsButton">
                         <span class="icon icon-tools icon-text"></span>
                         Tools
                     </button>
-                    <button class="btn btn-default" id='settings'>
+                    <button class="btn btn-default" id='settingsButton'>
                         <span class="icon icon-cog icon-text"></span>
                         Settings
                     </button>
                 </div>
-
                 <button class="btn btn-default btn-dropdown pull-right">
                     <span class="icon icon-help"></span>
                 </button>
@@ -50,41 +47,53 @@
         </header>
 
         <nav id="listPages">
-            <ul class="list-group" id="modList" style="display: none;">
-                <li class="list-group-item" id="">
-                    <img class="img-circle media-object pull-left" id="___MSM___" src="" width="32" height="32">
-                    <div class="media-body">
-                        <div class="checkbox pull-right">
-                            <label>
-                                <input type="checkbox" id="___MSM___" checked> &zwnj;
-                            </label>
-                        </div>
-                        <strong>My Singing Monsters - The Monster Handlers</strong>
-                        <p>Revert Changes by Mods and Load a Vanilla MSM</p>
-                    </div>
-                </li>
+            <ul class="list-group" id="modList" style="display: block;">
             </ul>
-            <ul class="list-group" id="settingsList" style="display: block;">
+            <ul class="list-group" id="settingsList" style="display: none;">
                 <li class="list-group-item" id="">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="settings_DebugMode"> Debug Mode
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="settings_CloseAfterLaunch" checked> Close After Launch
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="settings_IgnoreConflicts" checked> Ignore Conflicts (Mods will be loaded in Alphabetical Order)
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="settings_DisableUnsafeLua" checked> Disable Unsafe Lua Functions
+                        </label>
+                    </div>
                     <div class="form-group">
-                        <label>Executable path</label><br>
-                        <input style="width: 300px; box-shadow: none;" type="email" class="form-control" placeholder="Path to MySingingMonsters.exe">
+                        <button class="btn btn-default" id="findMSMButton">
+                            <span class="icon icon-folder"></span>
+                        </button>
+                        <input style="width: 300px; box-shadow: none;" id="pathLabel" type="email" class="form-control" placeholder="Path to MySingingMonsters.exe">
                     </div>
-                    <br>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox"> Debug mode
-                        </label>
+                    <div class="btn-group pull-right">
+                        <button class="btn btn-default" id="resetSettingsButton">
+                            Reset
+                        </button>
+                        <button class="btn btn-primary" id="saveSettingsButton">
+                            Save
+                        </button>
                     </div>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox"> Close launcher after launch
-                        </label>
-                    </div>
+  
                 </li>
             </ul>
             <ul class="list-group" id="toolsList" style="display: none;">
-
+                <li class="list-group-item" id="">
+                    <button class="btn btn-default" id="resetDataFolder">
+                        Reset Data Folder
+                    </button>
+                </li>
             </ul>
         </nav>
 
@@ -96,51 +105,23 @@
                 <button class="btn btn-default" id="refreshButton">
                     Refresh
                 </button>
+
                 <button class="btn btn-primary pull-right" id="launchButton">
                     Launch
                 </button>
+
+                <div class="btn-group pull-right">
+                    <button class="btn btn-default pull-right" id="selectButton">
+                        Select All
+                    </button>
+                    <button class="btn btn-default pull-right" id="deselectButton">
+                        Deselect All
+                    </button>
+                </div>
+
             </div>
         </footer>
     </div>
-    <script>
-        var loc = window.location.pathname;
-        var dir = loc.substring(0, loc.lastIndexOf('/'));
-        document.getElementById("___MSM___").src = dir + "/assets/msm.png" //Set the image of the BBB, electron is weird when compiling into a binary, needs the full path name
-        var settingsList = document.getElementById("settingsList");
-        var modList = document.getElementById("modList");
-        var toolsList = document.getElementById("toolsList");
-        document.getElementById("home").addEventListener("click", function () {
-            settingsList.style.display = "none";
-            modList.style.display = "block";
-            toolsList.style.display = "none";
-        });
-        document.getElementById("tools").addEventListener("click", function () {
-            settingsList.style.display = "none";
-            modList.style.display = "none";
-            toolsList.style.display = "block";
-        });
-        document.getElementById("settings").addEventListener("click", function () {
-            settingsList.style.display = "block";
-            modList.style.display = "none";
-            toolsList.style.display = "none";
-        });
-        document.getElementById("launchButton").addEventListener("click", function () {
-            var radios = document.getElementsByTagName('input');
-            var value;
-            for (var i = 0; i < radios.length; i++) {
-                if (radios[i].type === 'radio' && radios[i].checked) {
-                    value = radios[i]
-                }
-            }
-            window.api.send("toMain", ["launchClicked", value.id]);
-        })
-        document.getElementById("exitButton").addEventListener("click", function () {
-            window.api.send("toMain", ["exitClicked"]);
-        })
-        document.getElementById("refreshButton").addEventListener("click", function () {
-            window.api.send("toMain", ["refreshClicked"]);
-        })
-    </script>
+    <script src="js/client.js"></script>
 </body>
-
 </html>

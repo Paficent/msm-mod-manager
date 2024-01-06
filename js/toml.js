@@ -2,8 +2,18 @@ const fs = require('fs');
 const path = require('path');
 const toml = require('@iarna/toml');
 
+function fileExistsSync(filePath) {
+    try {
+        fs.accessSync(filePath);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
 function readDirectory(directoryPath, baseDirectory = '') {
     try {
+        console.log(directoryPath)
         const files = fs.readdirSync(directoryPath);
         const out = [];
 
@@ -21,14 +31,12 @@ function readDirectory(directoryPath, baseDirectory = '') {
 
         return out;
     } catch (error) {
-        console.error(`Error reading directory: ${directoryPath}`, error);
-        throw error;
+        throw new Error(`Error reading directory: ${directoryPath}`, error.message);
     }
 }
 
 function generate(title, description, creator, version, modPath) {
     try {
-        const msmDir = path.dirname(settings.executable_path);
         const assetsPath = path.join(modPath, 'assets');
         const files = readDirectory(assetsPath);
 
@@ -44,26 +52,15 @@ function generate(title, description, creator, version, modPath) {
 
         for (const fileName of files) {
             const normalizedFileName = fileName.split(path.sep).join('/');
-
-            if (fileExistsSync(path.join(msmDir, 'data', normalizedFileName))) {
-                ast.assets[counter] = [normalizedFileName, normalizedFileName];
-                counter++;
-            }
+            ast.assets[counter] = [normalizedFileName, normalizedFileName];
+            counter++;
         }
+
+        console.log(toml.stringify(ast))
 
         fs.writeFileSync(path.join(modPath, 'info.toml'), toml.stringify(ast));
     } catch (error) {
-        console.error('Error generating data:', error);
-        throw error;
-    }
-}
-
-function fileExistsSync(filePath) {
-    try {
-        fs.accessSync(filePath);
-        return true;
-    } catch (error) {
-        return false;
+        throw new Error('Error generating TOML', error.message);
     }
 }
 
