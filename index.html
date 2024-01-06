@@ -17,6 +17,85 @@
             overflow: hidden;
             overflow-y: scroll;
         }
+
+        #settingsList h3 {
+            font-size: 18px;
+            line-height: 1;
+            margin-bottom: 5px;
+            margin-top: 5px;
+        }
+
+        .checkbox {
+            display: flex;
+            margin: 3px 0;
+            cursor: pointer;
+        }
+
+        #textInput {
+            cursor: text;
+        }
+
+        ::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #dadada;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #8b8b8b;
+        }
+
+        .form-group {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+        }
+
+        .list-group-item button {
+            cursor: pointer;
+        }
+
+        .form-group button {
+            height: 32px;
+            width: 36px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 2px;
+            cursor: pointer;
+        }
+
+        @keyframes moveAnimation {
+            0% {
+                transform: translateY(50%);
+                opacity: 0%;
+            }
+            100% {
+                transform: translateY(0%);
+                opacity: 100%;
+            }
+        }
+
+        @keyframes moveSettingsAnimation {
+            0% {
+                transform: translateY(100%);
+                opacity: 0%;
+            }
+            100% {
+                transform: translateY(0%);
+                opacity: 100%;
+            }
+        }
+
+        .form-group button .icon {
+            cursor: pointer;
+        }
+
+        .icon {
+            float: none !important;
+        }
     </style>
 </head>
 
@@ -51,14 +130,10 @@
             </ul>
             <ul class="list-group" id="settingsList" style="display: none;">
                 <li class="list-group-item" id="">
+                    <h3 style="margin-top: 0;">General</h3>
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" id="settings.debug_mode"> Debug Mode
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="settings.ignore_conflicts" checked> Ignore Conflicts (Mods will be loaded in Alphabetical Order)
+                            <input type="checkbox" id="settings.always_on_top" checked> Always On Top
                         </label>
                     </div>
                     <div class="checkbox">
@@ -66,31 +141,31 @@
                             <input type="checkbox" id="settings.close_after_launch" checked> Close After Launch
                         </label>
                     </div>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="settings.disable_unsafe_lua_functions" checked> Disable Unsafe Lua Functions
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="settings.always_on_top" checked> Always On Top
-                        </label>
-                    </div>
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 3px;">
+                        <input style="width: 300px; box-shadow: none;" id="textInput" type="email" class="form-control"
+                            placeholder="MySingingMonsters.exe Executable Path">
                         <button class="btn btn-default" id="findMSMButton">
                             <span class="icon icon-folder"></span>
                         </button>
-                        <input style="width: 300px; box-shadow: none;" id="pathLabel" type="email" class="form-control" placeholder="Path to MySingingMonsters.exe">
                     </div>
-                    <div class="btn-group pull-right">
-                        <button class="btn btn-default" id="resetSettingsButton">
-                            Reset
-                        </button>
-                        <button class="btn btn-primary" id="saveSettingsButton">
-                            Save
-                        </button>
+                    <h3>Other</h3>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="settings.debug_mode"> Debug Mode
+                        </label>
                     </div>
-  
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="settings.ignore_conflicts" checked> Ignore Conflicts (Mods will
+                            be loaded in Alphabetical Order)
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="settings.disable_unsafe_lua_functions" checked> Disable Unsafe
+                            Lua Functions
+                        </label>
+                    </div>
                 </li>
             </ul>
             <ul class="list-group" id="toolsList" style="display: none;">
@@ -115,7 +190,7 @@
                     Launch
                 </button>
 
-                <div class="btn-group pull-right">
+                <div class="btn-group pull-right" id="selectModButtons">
                     <button class="btn btn-default pull-right" id="selectButton">
                         Select All
                     </button>
@@ -124,9 +199,19 @@
                     </button>
                 </div>
 
+                <div class="btn-group pull-right" id="settingsSaveButtons" style="display: none;">
+                    <button class="btn btn-default" id="resetSettingsButton">
+                        Reset
+                    </button>
+                    <button class="btn btn-primary" id="saveSettingsButton">
+                        Save
+                    </button>
+                </div>
+
             </div>
         </footer>
     </div>
     <script src="js/client.js"></script>
 </body>
+
 </html>
