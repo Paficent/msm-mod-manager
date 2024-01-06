@@ -82,8 +82,8 @@ try {
     document.getElementById("selectButton").addEventListener("click", function () {
         const checkBoxes = getCheckBoxes(modSection)
 
-        checkBoxes.forEach((id) => {
-            document.getElementById(checkbox.id).checked = false;
+        checkBoxes.forEach((checkbox) => {
+            document.getElementById(checkbox.id).checked = true;
         })
     });
     document.getElementById("deselectButton").addEventListener("click", function () {
@@ -117,6 +117,10 @@ try {
             handleCheckbox(ev.target)
         });
     })
+
+    document.getElementById("resetSettingsButton").addEventListener("click", function(){
+        window.api.send("toMain", ["resetSettingsButton"]);
+    });
 
 } catch (error) {
     console.error("An error occurred:", error.message);

@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const toml = require('@iarna/toml');
+const logger = require('./logger').logger;
 
 function fileExistsSync(filePath) {
     try {
@@ -31,7 +32,7 @@ function readDirectory(directoryPath, baseDirectory = '') {
 
         return out;
     } catch (error) {
-        throw new Error(`Error reading directory: ${directoryPath}`, error.message);
+        logger.error(`Error reading directory: ${directoryPath} - ${error.message}`)
     }
 }
 
@@ -56,11 +57,9 @@ function generate(title, description, creator, version, modPath) {
             counter++;
         }
 
-        console.log(toml.stringify(ast))
-
         fs.writeFileSync(path.join(modPath, 'info.toml'), toml.stringify(ast));
     } catch (error) {
-        throw new Error('Error generating TOML', error.message);
+        logger.error(`Error generating TOML ${error.message}`)
     }
 }
 
