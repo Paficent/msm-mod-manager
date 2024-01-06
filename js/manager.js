@@ -84,7 +84,6 @@ function replaceAssets(names, settings, dirname, originalDir) {
             const modPath = path.join(originalDir, name);
             const info = toml.parse(fs.readFileSync(path.join(modPath, "info.toml"), 'utf-8'));
             const assets = info.assets;
-            logger.info(info.title)
     
             var fix = {'assets': []};
             if (fs.existsSync(fixPath)){

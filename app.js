@@ -40,7 +40,7 @@ function readSettings() {
 }
 function writeSettings(settings) {
     try {
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+        fs.writeFileSync(settingsPath, JSON.stringify(settings));
     } catch (error) {
         logger.error("Error writing settings file:", error);
     }
@@ -129,6 +129,15 @@ function populateList() {
     }
 }
 
+function handleSettingsChange(currentSettings, setting, value){
+    currentSettings[setting] = value;
+    writeSettings(currentSettings);
+    switch (setting) { // Unimplemented
+        case "debug_mode":
+            //Unimplemented
+    }
+}
+
 ipcMain.on("toMain", function (event, args) {
     try {
         const currentSettings = readSettings();
@@ -155,6 +164,8 @@ ipcMain.on("toMain", function (event, args) {
                     mainWindow.webContents.executeJavaScript(`document.getElementById("pathLabel").value = "${out.filePaths[0].replaceAll(path.sep, "/")}"`)
                 }
             })
+        } else if(args[0] === "settings_checkbox"){
+            handleSettingsChange(currentSettings, args[1], args[2])
         }
     } catch (error) {
         logger.error("Error in IPC Main:", error);

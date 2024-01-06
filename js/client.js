@@ -10,9 +10,9 @@ try {
         for (var i = 0; i < checkBoxes.length; i++) {
             if (checkBoxes[i].type === 'checkbox') {
                 if (checkIfChecked && checkBoxes[i].checked){
-                    returnVal.push(checkBoxes[i].id);
+                    returnVal.push(checkBoxes[i]);
                 } else if(!checkIfChecked) {
-                    returnVal.push(checkBoxes[i].id);
+                    returnVal.push(checkBoxes[i]);
                 }
             }
         }
@@ -50,20 +50,23 @@ try {
         const checkBoxes = getCheckBoxes(modSection)
 
         checkBoxes.forEach((id) => {
-            document.getElementById(id).checked = true;
+            document.getElementById(checkbox.id).checked = false;
         })
     });
     document.getElementById("deselectButton").addEventListener("click", function () {
         const checkBoxes = getCheckBoxes(modSection)
 
-        checkBoxes.forEach((id) => {
-            document.getElementById(id).checked = false;
+        checkBoxes.forEach((checkbox) => {
+            document.getElementById(checkbox.id).checked = false;
         })
     });
     document.getElementById("launchButton").addEventListener("click", function () {
-        const checkBoxes = getCheckBoxes(modSection, true)
+        var checkboxes = [];
+        getCheckBoxes(modSection, true).forEach((checkbox) => {
+            checkboxes.push(checkbox.id);
+        });
 
-        window.api.send("toMain", ["launchClicked", JSON.stringify(checkBoxes)]);
+        window.api.send("toMain", ["launchClicked", JSON.stringify(checkboxes)]);
     });
 
 
@@ -71,6 +74,18 @@ try {
     document.getElementById("findMSMButton").addEventListener("click", function () {
         window.api.send("toMain", ["findMSM"]);
     });
+
+    function handleCheckbox(checkbox){
+        window.api.send("toMain", ["settings_checkbox", checkbox.id.split("settings.")[1], checkbox.checked])
+    }
+
+    const checkboxes = getCheckBoxes(settingsSection)
+    checkboxes.forEach((checkbox) => {
+        document.getElementById(checkbox.id).addEventListener("click", function(ev){
+            handleCheckbox(ev.target)
+        });
+    })
+
 } catch (error) {
     console.error("An error occurred:", error.message);
 }
