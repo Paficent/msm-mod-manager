@@ -2,3 +2,4 @@ tmp/
 mods/
 node_modules/
 dist/
+build/

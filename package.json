@@ -25,7 +25,8 @@
         "appId": "com.Paficent.ModLauncher",
         "productName": "MSM Mod Manager",
         "win": {
-            "target": "msi"
+            "icon": "dist/icon.png",
+            "target": "portable"
         },
         "files": [
             "!settings.json",
