@@ -36,7 +36,6 @@ function fixGame(settings, dirname) {
 
         const fix = toml.parse(fs.readFileSync(fixPath).toString());
         const assets = fix.assets;
-        console.log(assets)
         const msm_dir = settings.msm_directory
 
         if (assets) {
