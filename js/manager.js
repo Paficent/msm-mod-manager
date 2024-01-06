@@ -36,7 +36,8 @@ function fixGame(settings, dirname) {
 
         const fix = toml.parse(fs.readFileSync(fixPath).toString());
         const assets = fix.assets;
-        const msm_dir = settings.executable_path.substring(0, settings.executable_path.lastIndexOf('\\'));
+        console.log(assets)
+        const msm_dir = settings.msm_directory
 
         if (assets) {
             assets.forEach(items => {
@@ -75,13 +76,13 @@ function fixGame(settings, dirname) {
     }
 }
 
-function replaceAssets(names, settings, dirname, originalDir) {
+function replaceAssets(names, settings, dirname) {
     try {
-        fixGame(settings, dirname)
-        const msm_dir = settings.executable_path.substring(0, settings.executable_path.lastIndexOf('\\'));
+        fixGame(settings, dirname);
+        const msm_dir = settings.msm_directory;
         const fixPath = path.join(dirname, "tmp", "fix.toml");
         names.forEach((name) => {
-            const modPath = path.join(originalDir, name);
+            const modPath = path.join(msm_dir, name);
             const info = toml.parse(fs.readFileSync(path.join(modPath, "info.toml"), 'utf-8'));
             const assets = info.assets;
     
@@ -137,20 +138,24 @@ function replaceAssets(names, settings, dirname, originalDir) {
 
 function launchGame(settings, mainWindow) {
     try {
-        if (settings.executable_path === "") {
+        if (settings.msm_directory === "") {
             dialog.showMessageBox(mainWindow, {
                 "title": "Error",
-                "message": "Couldn't find MySingingMonsters.exe.\nInput the MySingingMonsters.exe path in the settings menu.",
+                "message": "Couldn't find 'MySingingMonsters' folder, please input the 'MySingingMonsters' folder in the settings window",
                 "buttons": ["OK"]
             });
-        } else if (!fs.existsSync(settings.executable_path)) {
+        } else if (!fs.existsSync(settings.msm_directory)) {
             dialog.showMessageBox(mainWindow, {
                 "title": "Error",
-                "message": "The path to MySingingMonsters.exe has changed.\nInput the MySingingMonsters.exe path in the settings menu.",
+                "message": "The path to 'MySingingMonsters' has changed.\nInput the 'MySingingMonsters' path in the settings menu.",
                 "buttons": ["OK"]
             });
         } else {
-            exec(`cmd /K "${settings.executable_path}"`);
+            exec('taskkill /IM "MySingingMonsters.exe" /F').on('exit', () => {
+                logger.info("Successfully killed MySingingMonsters.exe")
+                exec(`cmd /K "${path.join(settings.msm_directory, "MySingingMonsters.exe")}"`); // Launch The Game
+                logger.info("Successfully launched MySingingMonsters.exe")
+            });
 
             if (settings.close_after_launch) {
                 mainWindow.close();

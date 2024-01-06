@@ -139,17 +139,17 @@
                     <h3 style="margin-top: 0;">General</h3>
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" id="settings.always_on_top" checked> Always On Top
+                            <input type="checkbox" id="settings.ignore_conflicts"> Ignore Conflicts
                         </label>
                     </div>
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" id="settings.close_after_launch" checked> Close After Launch
+                            <input type="checkbox" id="settings.close_after_launch"> Close After Launch
                         </label>
                     </div>
                     <div class="form-group" style="margin-bottom: 3px;">
-                        <input style="width: 300px; box-shadow: none;" id="textInput" type="email" class="form-control"
-                            placeholder="MySingingMonsters.exe Executable Path">
+                        <input style="width: 300px; box-shadow: none;" id="pathLabel" type="email" class="form-control"
+                            placeholder="MySingingMonsters Directory">
                         <button class="btn btn-default" id="findMSMButton">
                             <span class="icon icon-folder"></span>
                         </button>
@@ -158,12 +158,6 @@
                     <div class="checkbox">
                         <label>
                             <input type="checkbox" id="settings.debug_mode"> Debug Mode
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" id="settings.ignore_conflicts" checked> Ignore Conflicts (Mods will
-                            be loaded in Alphabetical Order)
                         </label>
                     </div>
                     <div class="checkbox">
@@ -177,7 +171,7 @@
             <ul class="list-group" id="toolsList" style="display: none;">
                 <li class="list-group-item" id="">
                     <button class="btn btn-default" id="resetDataFolder">
-                        Reset Data Folder
+                        Reset Data Folder //Unimplemented
                     </button>
                 </li>
             </ul>
@@ -208,9 +202,6 @@
                 <div class="btn-group pull-right" id="settingsSaveButtons" style="display: none;">
                     <button class="btn btn-default" id="resetSettingsButton">
                         Reset
-                    </button>
-                    <button class="btn btn-primary" id="saveSettingsButton">
-                        Save
                     </button>
                 </div>
 
