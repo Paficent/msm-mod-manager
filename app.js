@@ -5,11 +5,10 @@ const { toml, logger, manager, sprite} = require('./js');
 const path = require('path');
 const fs = require('fs');
 
-var isDev = true;
+var isDebug = false;
 
-let originalDir = __dirname;
 const preloadPath = path.join(__dirname, "js", "preload.js")
-
+let originalDir = __dirname;
 if (__dirname.endsWith(path.sep + 'app.asar')) {
     __dirname = __dirname.substring(0, __dirname.lastIndexOf(path.sep));
     isPacked = true;
@@ -50,6 +49,7 @@ function writeSettings(settings) {
 
 
 var mainWindow = null;
+var devtools = null;
 
 app.on('ready', function () {
     createSettingsFileIfNotExists();
@@ -71,8 +71,7 @@ app.on('ready', function () {
         },
     });
 
-    let devtools = null;
-    if(isDev){
+    if(isDebug && devtools == null){
         devtools = new BrowserWindow();
         mainWindow.webContents.setDevToolsWebContents(devtools.webContents);
         mainWindow.webContents.openDevTools({'activate': true, 'mode': 'detach'});
@@ -157,11 +156,14 @@ function populateSettings(settings) {
 function handleSettingsChange(currentSettings, setting, value){
     switch (setting) { // Unimplemented
         case "debug_mode":
-            isDev = value;
-            if(isDev){
+            isDebug = value;
+            if(isDebug && devtools == null){
                 devtools = new BrowserWindow();
                 mainWindow.webContents.setDevToolsWebContents(devtools.webContents);
                 mainWindow.webContents.openDevTools({'activate': true, 'mode': 'detach'});
+            } else if(!isDebug && devtools != null){
+                devtools.close();
+                devtools = null;
             }
 
         default: 
