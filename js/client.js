@@ -44,7 +44,7 @@ try {
     }
     modSection.addEventListener('DOMSubtreeModified', function () {
         DetectModListChanges();
-        noMods.style.display = "none";
+        noModIndicator.style.display = "none";
     });
     var tool = 0;
     var allTools = Array.from(toolsSection.children);
