@@ -27,7 +27,7 @@
         "appId": "com.Paficent.ModLauncher",
         "productName": "MSM Mod Manager",
         "win": {
-            "icon": "dist/icon.png",
+            "icon": "dist/icon.ico",
             "target": "nsis"
         },
         "files": [
