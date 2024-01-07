@@ -154,11 +154,10 @@ function launchGame(settings, mainWindow) {
                 logger.info("Successfully killed MySingingMonsters.exe")
                 exec(`cmd /K "${path.join(settings.msm_directory, "MySingingMonsters.exe")}"`); // Launch The Game
                 logger.info("Successfully launched MySingingMonsters.exe")
+                if (settings.close_after_launch) {
+                    mainWindow.close();
+                }
             });
-
-            if (settings.close_after_launch) {
-                mainWindow.close();
-            }
         }
     } catch (error) {
         logger.error("Error launching the game:", error);
