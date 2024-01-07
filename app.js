@@ -1,6 +1,7 @@
 //TODO delete folders mods make
 
 const { app, BrowserWindow, ipcMain, dialog} = require('electron');
+const { autoUpdater } = require("electron-updater")
 const { toml, logger, manager, sprite} = require('./js');
 const path = require('path');
 const fs = require('fs');
@@ -14,7 +15,6 @@ if (__dirname.endsWith(path.sep + 'app.asar')) {
     isPacked = true;
     originalDir = __dirname.substring(0, __dirname.lastIndexOf(path.sep));
 }
-
 
 function resetSettings(){
     writeSettings({"msm_directory": "","debug_mode": false,"ignore_conflicts": true,"disable_unsafe_lua_functions": true,"close_after_launch": false});
@@ -87,6 +87,8 @@ app.on('ready', function () {
     mainWindow.on('closed', function () {
         mainWindow = null;
     });
+
+    autoUpdater.checkForUpdatesAndNotify()
 });
 
 app.on('window-all-closed', function () {
