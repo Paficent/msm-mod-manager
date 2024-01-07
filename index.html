@@ -91,6 +91,16 @@
             }
         }
 
+        @keyframes fadeAnimation {
+            0% {
+                opacity: 0%;
+            }
+
+            100% {
+                opacity: 100%;
+            }
+        }
+
         .form-group button .icon {
             cursor: pointer;
         }
@@ -98,13 +108,77 @@
         .icon {
             float: none !important;
         }
+
+        .dropdownbutton {
+            float: right;
+            position: relative;
+            display: inline;
+        }
+
+        .helpdropdown {
+            cursor: pointer;
+            padding: 0;
+            animation: 0.25s fadeAnimation forwards ease;
+            top: 24px;
+            right: 0;
+            border-radius: 4px;
+            display: none;
+            position: absolute;
+            background-color: #fcfcfc;
+            background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #fcfcfc), color-stop(100%, #f1f1f1));
+            background-image: -webkit-linear-gradient(top, #fcfcfc 0, #f1f1f1 100%);
+            background-image: linear-gradient(to bottom, #fcfcfc 0, #f1f1f1 100%);
+            border: 1px solid #c2c0c2;
+            min-width: 160px;
+            z-index: 1;
+            border-color: #c2c0c2 #c2c0c2 #a19fa1;
+        }
+
+        .helpdropdown div {
+            cursor: pointer;
+            padding: 3px 5px;
+            transition: 0.25s;
+            background: none;
+            border-radius: 0;
+            text-align: right;
+        }
+
+        .helpdropdown div p {
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .helpdropdown div:first-child {
+            border-radius: 3px 3px 0 0;
+        }
+
+        .helpdropdown div:last-child {
+            border-radius: 0 0 3px 3px;
+        }
+
+        .helpdropdown div:hover {
+            background: rgba(0, 0, 0, 0.12);
+        }
+
+        .helpdropdown hr {
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .btn {
+            cursor: pointer;
+        }
+
+        .btn span {
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
     <div class="window">
         <header class="toolbar toolbar-header">
-            <h1 class="title">MSM Mod Launcher v0.0.1 ALPHA</h1>
+            <h1 class="title">MSM Mod Launcher <b>1.0.2</b></h1>
 
             <div class="toolbar-actions">
                 <div class="btn-group">
@@ -121,9 +195,24 @@
                         Settings
                     </button>
                 </div>
-                <button class="btn btn-default btn-dropdown pull-right">
-                    <span class="icon icon-help"></span>
-                </button>
+                <div class="dropdownbutton">
+                    <button class="btn btn-default btn-dropdown pull-right" onclick="dropDown()">
+                        <span class="icon icon-help"></span>
+                        <div class="helpdropdown" id="dropdowncontent">
+                            <div>
+                                <p>Coming</p>
+                            </div>
+                            <hr>
+                            <div>
+                                <p>very</p>
+                            </div>
+                            <hr>
+                            <div>
+                                <p>soon</p>
+                            </div>
+                        </div>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -144,7 +233,7 @@
                         </label>
                     </div>
                     <div class="form-group" style="margin-bottom: 3px;">
-                        <input style="width: 300px; box-shadow: none;" id="pathLabel" type="email" class="form-control"
+                        <input style="width: 365px; box-shadow: none;" id="pathLabel" type="email" class="form-control"
                             placeholder="MySingingMonsters Directory">
                         <button class="btn btn-default" id="findMSMButton">
                             <span class="icon icon-folder"></span>
@@ -205,7 +294,6 @@
         </footer>
     </div>
     <script src="js/client.js"></script>
-    <script src="js/jquery-3.7.1.min.js"></script>
 </body>
 
 </html>

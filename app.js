@@ -1,8 +1,8 @@
 //TODO delete folders mods make
 
-const { app, BrowserWindow, ipcMain, dialog} = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const { autoUpdater } = require("electron-updater")
-const { toml, logger, manager, sprite} = require('./js');
+const { toml, logger, manager, sprite } = require('./js');
 const path = require('path');
 const fs = require('fs');
 
@@ -16,8 +16,8 @@ if (__dirname.endsWith(path.sep + 'app.asar')) {
     originalDir = __dirname.substring(0, __dirname.lastIndexOf(path.sep));
 }
 
-function resetSettings(){
-    writeSettings({"msm_directory": "","debug_mode": false,"ignore_conflicts": true,"disable_unsafe_lua_functions": true,"close_after_launch": false});
+function resetSettings() {
+    writeSettings({ "msm_directory": "", "debug_mode": false, "ignore_conflicts": true, "disable_unsafe_lua_functions": true, "close_after_launch": false });
 }
 
 const settingsPath = path.join(originalDir, "settings.json");
@@ -71,10 +71,10 @@ app.on('ready', function () {
         },
     });
 
-    if(isDebug && devtools == null){
+    if (isDebug && devtools == null) {
         devtools = new BrowserWindow();
         mainWindow.webContents.setDevToolsWebContents(devtools.webContents);
-        mainWindow.webContents.openDevTools({'activate': true, 'mode': 'detach'});
+        mainWindow.webContents.openDevTools({ 'activate': true, 'mode': 'detach' });
     }
 
 
@@ -108,7 +108,7 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
         message: process.platform === 'win32' ? releaseNotes : releaseName,
         detail: 'A new version has been downloaded. Restart the application to apply the updates.'
     }
-  
+
     dialog.showMessageBox(dialogOpts).then((returnValue) => {
         if (returnValue.response === 0) autoUpdater.quitAndInstall()
     })
@@ -117,7 +117,13 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
 
 function populateMods(settings) {
     try {
-        if(settings.msm_directory == ""){
+        if (settings.msm_directory == "") {
+            mainWindow.webContents.executeJavaScript(`
+  document.getElementById("modList").innerHTML = '<li class="list-group-item" id="noMods" style="text-align: center;">' +
+    '<h3>MSM directory not set</h3>' +
+    '<img src="https://images-ext-1.discordapp.net/external/d-EBv1nqbYspfTqKrMk796UXZ_5crvfHQ1Sa1040dE0/%3Fsize%3D128%26quality%3Dlossless/https/cdn.discordapp.com/emojis/1154955561943707720.webp?format=webp"/>' +
+  '</li>';
+`)
             return logger.info("MySingingMonsters directory not found...")
         }
         const modsPath = path.join(settings.msm_directory, "mods");
@@ -126,6 +132,17 @@ function populateMods(settings) {
         }
 
         const mods = fs.readdirSync(modsPath);
+        if (mods == "" || settings.msm_directory == "") {
+            mainWindow.webContents.executeJavaScript(`
+  document.getElementById("modList").innerHTML = '<li class="list-group-item" id="noMods" style="text-align: center;">' +
+    '<h3>No mods found</h3>' +
+    '<img src="https://images-ext-1.discordapp.net/external/d-EBv1nqbYspfTqKrMk796UXZ_5crvfHQ1Sa1040dE0/%3Fsize%3D128%26quality%3Dlossless/https/cdn.discordapp.com/emojis/1154955561943707720.webp?format=webp"/>' +
+  '</li>';
+`)
+                .catch(error => {
+                    console.error('Error executing JavaScript:', error.message);
+                });
+        }
 
         for (const mod of mods) {
             const p = path.join(modsPath, mod);
@@ -169,23 +186,23 @@ function populateSettings(settings) {
                 document.getElementById("settings." + key).checked = value
             }
         }
-    `)    
+    `)
 }
 
-function handleSettingsChange(currentSettings, setting, value){
+function handleSettingsChange(currentSettings, setting, value) {
     switch (setting) { // Unimplemented
         case "debug_mode":
             isDebug = value;
-            if(isDebug && devtools == null){
+            if (isDebug && devtools == null) {
                 devtools = new BrowserWindow();
                 mainWindow.webContents.setDevToolsWebContents(devtools.webContents);
-                mainWindow.webContents.openDevTools({'activate': true, 'mode': 'detach'});
-            } else if(!isDebug && devtools != null){
+                mainWindow.webContents.openDevTools({ 'activate': true, 'mode': 'detach' });
+            } else if (!isDebug && devtools != null) {
                 devtools.close();
                 devtools = null;
             }
 
-        default: 
+        default:
             currentSettings[setting] = value;
             writeSettings(currentSettings);
     }
@@ -197,7 +214,7 @@ ipcMain.on("toMain", function (event, args) {
 
         if (args[0] === "exitClicked") {
             mainWindow.close();
-        } else if (args[0] === "refreshClicked") {      
+        } else if (args[0] === "refreshClicked") {
             // Make the list contents nothing, then refresh it (only really used if you add a mod while the launcher is open)
             mainWindow.webContents.executeJavaScript(`document.getElementById("modList").innerHTML = ""`);
 
@@ -205,23 +222,23 @@ ipcMain.on("toMain", function (event, args) {
         } else if (args[0] === "launchClicked") {
             manager.replaceAssets(JSON.parse(args[1]), currentSettings, __dirname);
             manager.launchGame(currentSettings, mainWindow);
-        } else if(args[0] === "findMSM") {
+        } else if (args[0] === "findMSM") {
             dialog.showOpenDialog(mainWindow, {
                 'defaultPath': "C:\\Program Files (x86)\\Steam\\steamapps\\common",
                 'title': "Open My Singing Monsters Directory",
                 'properties': [
                     'openDirectory'
                 ]
-            }).then((out) =>{
-                if(!out.canceled && out.filePaths[0] && fs.existsSync(out.filePaths[0])){
+            }).then((out) => {
+                if (!out.canceled && out.filePaths[0] && fs.existsSync(out.filePaths[0])) {
                     currentSettings.msm_directory = out.filePaths[0];
                     writeSettings(currentSettings);
                     mainWindow.webContents.executeJavaScript(`document.getElementById("pathLabel").value = "${out.filePaths[0].replaceAll(path.sep, "/")}"`)
                 }
             })
-        } else if(args[0] === "settings_checkbox"){
+        } else if (args[0] === "settings_checkbox") {
             handleSettingsChange(currentSettings, args[1], args[2])
-        } else if(args[0] === "resetSettingsButton"){
+        } else if (args[0] === "resetSettingsButton") {
             resetSettings();
             populateSettings(readSettings());
         }

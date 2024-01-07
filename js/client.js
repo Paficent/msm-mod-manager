@@ -5,7 +5,6 @@ try {
     var toolsSection = document.getElementById("toolsList");
     var selectModButtons = document.getElementById("selectModButtons");
     var settingsSaveButtons = document.getElementById("settingsSaveButtons");
-    // var noModIndicator = document.getElementById("noMods");
 
     function getCheckBoxes(section, checkIfChecked) {
         var checkBoxes = section.getElementsByTagName('input');
@@ -44,7 +43,6 @@ try {
     }
     modSection.addEventListener('DOMSubtreeModified', function () {
         DetectModListChanges();
-        // noModIndicator.style.display = "none";
     });
     var tool = 0;
     var allTools = Array.from(toolsSection.children);
@@ -77,6 +75,20 @@ try {
         selectModButtons.style.display = "none";
         settingsSaveButtons.style.display = "block";
     });
+
+    //Dropdown
+    var dropdownActive = false;
+    var dropdownContent = document.getElementById("dropdowncontent");
+    function dropDown() {
+        if (!dropdownActive) {
+            dropdownContent.style.display = "block";
+            dropdownActive = true;
+        }
+        else {
+            dropdownContent.style.display = "none";
+            dropdownActive = false;
+        }
+    }
 
     //Footer
     document.getElementById("exitButton").addEventListener("click", function () {
@@ -124,7 +136,7 @@ try {
         });
     })
 
-    document.getElementById("resetSettingsButton").addEventListener("click", function(){
+    document.getElementById("resetSettingsButton").addEventListener("click", function () {
         window.api.send("toMain", ["resetSettingsButton"]);
     });
 
