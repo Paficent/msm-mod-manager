@@ -4,3 +4,4 @@ node_modules/
 dist/
 build/
 build/icon.png
+publish.bat

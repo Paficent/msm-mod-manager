@@ -2,14 +2,15 @@
     "name": "launcher",
     "productName": "MSM Mod Manager",
     "version": "1.0.0",
-    "description": "A simple template app for Proton",
+    "description": "Manage your mods in My Singing Monsters Steam!",
     "main": "app.js",
     "author": "Paficent",
-    "repository": "https://github.com/Paf1cent/msm-mod-manager",
+    "repository": "https://github.com/Paf1cent/msm-mod-loader",
     "scripts": {
         "start": "electron .",
         "pack": "electron-builder --dir",
-        "dist": "electron-builder"
+        "dist": "electron-builder",
+        "publish": "electron-builder --publish always"
     },
     "devDependencies": {
         "electron": "^28.1.0",
@@ -27,7 +28,7 @@
         "productName": "MSM Mod Manager",
         "win": {
             "icon": "dist/icon.png",
-            "target": "portable"
+            "target": "nsis"
         },
         "files": [
             "!settings.json",
@@ -36,7 +37,8 @@
         ]
     },
     "publish": {
-        "provider": "github"
+        "provider": "github",
+        "releaseType": "release"
     },
     "extraFiles": [
         "fonts",
