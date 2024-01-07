@@ -5,6 +5,7 @@ try {
     var toolsSection = document.getElementById("toolsList");
     var selectModButtons = document.getElementById("selectModButtons");
     var settingsSaveButtons = document.getElementById("settingsSaveButtons");
+    var noModIndicator = document.getElementById("noMods");
 
     function getCheckBoxes(section, checkIfChecked) {
         var checkBoxes = section.getElementsByTagName('input');
@@ -30,7 +31,8 @@ try {
         e.style.opacity = "0%";
         e.style.animation = "0.5s moveSettingsAnimation forwards ease " + (settingOption / 18) + "s";
     });
-    modSection.addEventListener('DOMSubtreeModified', function () {
+    DetectModListChanges();
+    function DetectModListChanges() {
         var mod = 0;
         var allMods = Array.from(modSection.children);
         allMods.forEach(function (e) {
@@ -39,6 +41,10 @@ try {
             e.style.opacity = "0%";
             e.style.animation = "0.5s moveAnimation forwards ease " + (mod / 18) + "s";
         });
+    }
+    modSection.addEventListener('DOMSubtreeModified', function () {
+        DetectModListChanges();
+        noModIndicator.style.display = "none";
     });
     var tool = 0;
     var allTools = Array.from(toolsSection.children);
