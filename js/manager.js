@@ -31,8 +31,9 @@ function deleteEmptyDirectorys(filePath, originalPath) {
         const files = fs.readdirSync(parentDir);
     
         if (files.length === 0) {
+            logger.info(`Removing ${originalPath.substring(0, originalPath.lastIndexOf('/'))}`);
             rimraf.sync(parentDir);
-            logger.info(`Removing: ${originalPath.substring(0, originalPath.lastIndexOf('/'))}`);
+            //logger.info(`Successfully removed ${originalPath.substring(0, originalPath.lastIndexOf('/'))}`)
         }
     } catch (err) {
         logger.error(`Error checking/deleting parent directory: ${err.message}`);
@@ -64,16 +65,18 @@ function fixGame(settings, AppData) {
                     const msmFilePath = path.join(msm_dir, "data", items[1])
 
                     if(fs.existsSync(filePath)){
-                        logger.info(`Fixing: ${items[1]}`);
+                        logger.info(`Fixing ${items[1]}`);
 
                         const newBuffer = fs.readFileSync(filePath);
                         fs.writeFileSync(msmFilePath, newBuffer);
+                        logger.info(`Sucessfully fixed ${items[1]}`);
                     } else {
                         try {
-                            logger.info(`Removing: ${items[1]}`);
+                            logger.info(`Removing ${items[1]}`);
                             if (fs.existsSync(msmFilePath)) {
                                 fs.unlinkSync(msmFilePath);
                             }
+                            logger.info(`Sucessfully removed ${items[1]}`);
                             deleteEmptyDirectorys(msmFilePath, items[1]);
                         } catch (deleteError) {
                             logger.error(`Error deleting file ${msmFilePath}: ${deleteError.message}`);
@@ -136,7 +139,7 @@ function replaceAssets(names, settings, mainWindow) {
                 })
 
                 if(isConflict){
-                    logger.info(`Skipped conflict: ${paths[1]}`);
+                    logger.info(`Skipped conflict ${paths[1]}`);
                 } else {
                     const toCopy = path.join(modPath, "assets/" + paths[0]);
                     const toReplace = path.join(msm_dir, "data", paths[1]);
@@ -146,17 +149,20 @@ function replaceAssets(names, settings, mainWindow) {
     
     
                     if (fs.existsSync(toReplace)) {
-                        logger.info(`Replacing: ${toReplaceSimplified}`);
+                        logger.info(`Replacing ${toReplaceSimplified}`);
 
                         fs.copyFileSync(toReplace, tmpPath);
                         fs.writeFileSync(toReplace, newBuffer);
+                        //logger.info(`Successfully replaced ${toReplaceSimplified}`);
     
                         replace.push([toReplaceSimplified, paths[1]]);
                     } else {
-                        logger.info(`Creating: ${toReplaceSimplified}`);
+                        logger.info(`Creating ${toReplaceSimplified}`);
+
                         createSubdirectoriesIfNotExist(toReplace)
                         fs.writeFileSync(toReplace, newBuffer);
-    
+
+                        //logger.info(`Successfully created ${toReplaceSimplified}`);
                         replace.push([toReplaceSimplified, paths[1]]);
                     }
                 }
@@ -190,11 +196,13 @@ function launchGame(settings, mainWindow) {
                 "buttons": ["OK"]
             });
         } else {
+            logger.info("Killing MySingingMonsters.exe")
             exec('taskkill /IM "MySingingMonsters.exe" /F').on('exit', () => {
-                logger.info("Successfully killed MySingingMonsters.exe")
+                //logger.info("Successfully killed MySingingMonsters.exe")
 
+                logger.info("Launching MySingingMonsters.exe")
                 exec(`cmd /K "${path.join(settings.msm_directory, "MySingingMonsters.exe")}"`); // Launch The Game
-                logger.info("Successfully launched MySingingMonsters.exe")
+                //logger.info("Successfully launched MySingingMonsters.exe")
 
                 if (settings.close_after_launch) {
                     mainWindow.close();
