@@ -166,6 +166,32 @@
             </ul>
             <ul class="list-group" id="toolsList" style="display: none;">
                 <li class="list-group-item" id="">
+                    <h3 style="margin-top: 0;">Toml Generator</h3>
+                    <div class="form-group" style="margin-bottom: 3px;">
+                        <input style="width: 300px; box-shadow: none;" id="modNameInput" type="email" class="form-control"
+                            placeholder="Mod Name">
+                        <input style="width: 300px; box-shadow: none;" id="modDescriptionInput" type="email" class="form-control"
+                            placeholder="Mod Description">
+                    </div>
+                   <div class="form-group" style="margin-bottom: 3px;">
+                        <input style="width: 300px; box-shadow: none;" id="modCreatorInput" type="email" class="form-control"
+                            placeholder="Mod Creator">
+                        <input style="width: 300px; box-shadow: none;" id="modVersionInput" type="email" class="form-control"
+                            placeholder="Mod Version">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 3px;">
+                        <button class="btn btn-default" id="findTomlFolder">
+                            <span class="icon icon-folder"></span>
+                        </button>
+                        <input style="width: 300px; box-shadow: none;" id="tomlModPathInput" type="email" class="form-control"
+                            placeholder="Mod Folder (Must contain 'assets' subfolder)">
+                    </div>
+                    <button class="btn btn-positive" id="generateToml">
+                        Generate
+                    </button>
+                </li>
+                <li class="list-group-item" id="">
+                    <h3 style="margin-top: 0;">Other</h3>
                     <button class="btn btn-default" id="resetDataFolder">
                         Reset Data Folder //Unimplemented
                     </button>

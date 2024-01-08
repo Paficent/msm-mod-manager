@@ -224,6 +224,19 @@ ipcMain.on("toMain", function (event, args) {
         } else if(args[0] === "resetSettingsButton"){
             resetSettings();
             populateSettings(readSettings());
+        } else if (args[0] === "findTomlFolder"){
+            dialog.showOpenDialog(mainWindow, {
+                'title': "Open Mod Directory",
+                'properties': [
+                    'openDirectory'
+                ]
+            }).then((out) =>{
+                if(!out.canceled && out.filePaths[0] && fs.existsSync(out.filePaths[0])){
+                    mainWindow.webContents.executeJavaScript(`document.getElementById("tomlModPathInput").value = "${out.filePaths[0].replaceAll(path.sep, "/")}"`)
+                }
+            })
+        } else if(args[0] === "generateToml"){
+            toml.generate(args[1], args[2], args[3], args[4], args[5])
         }
     } catch (error) {
         logger.error("Error in IPC Main:", error);

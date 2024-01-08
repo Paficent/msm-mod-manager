@@ -108,6 +108,35 @@ try {
         window.api.send("toMain", ["launchClicked", JSON.stringify(checkboxes)]);
     });
 
+
+
+
+
+
+    //Tools
+
+    document.getElementById("generateToml").addEventListener("click", function(){
+        const name = document.getElementById("modNameInput").value || "Unknown Mod";
+        const description = document.getElementById("modDescriptionInput").value || "???";
+        const creator = document.getElementById("modCreatorInput").value || "???";
+        const version = document.getElementById("modVersionInput").value || "???";
+        const modPath = document.getElementById("tomlModPathInput").value;
+        window.api.send("toMain", ["generateToml", name, description, creator, version, modPath]);
+    })
+
+    document.getElementById("findTomlFolder").addEventListener("click", function(){
+        window.api.send("toMain", ["findTomlFolder"]);
+    })
+
+
+
+
+
+
+
+
+
+
     // Settings
     document.getElementById("findMSMButton").addEventListener("click", function () {
         window.api.send("toMain", ["findMSM"]);

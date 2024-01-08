@@ -3,15 +3,6 @@ const path = require('path');
 const toml = require('@iarna/toml');
 const logger = require('./logger').logger;
 
-function fileExistsSync(filePath) {
-    try {
-        fs.accessSync(filePath);
-        return true;
-    } catch (error) {
-        return false;
-    }
-}
-
 function readDirectory(directoryPath, baseDirectory = '') {
     try {
         console.log(directoryPath)
