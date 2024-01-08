@@ -119,29 +119,36 @@ function populateMods(settings) {
     try {
         if (settings.msm_directory == "") {
             mainWindow.webContents.executeJavaScript(`
-  document.getElementById("modList").innerHTML = '<li class="list-group-item" id="noMods" style="text-align: center;">' +
-    '<h3>MSM directory not set</h3>' +
-    '<img src="https://images-ext-1.discordapp.net/external/d-EBv1nqbYspfTqKrMk796UXZ_5crvfHQ1Sa1040dE0/%3Fsize%3D128%26quality%3Dlossless/https/cdn.discordapp.com/emojis/1154955561943707720.webp?format=webp"/>' +
-  '</li>';
-`)
+                document.getElementById("modList").innerHTML = '<li class="list-group-item" id="noMods" style="text-align: center;">' +
+                    '<h3>MSM directory not set</h3>' +
+                    '<img src="https://images-ext-1.discordapp.net/external/d-EBv1nqbYspfTqKrMk796UXZ_5crvfHQ1Sa1040dE0/%3Fsize%3D128%26quality%3Dlossless/https/cdn.discordapp.com/emojis/1154955561943707720.webp?format=webp"/>' +
+                '</li>';
+            `)
             return logger.info("MySingingMonsters directory not found...")
         }
+
         const modsPath = path.join(settings.msm_directory, "mods");
         if (!fs.existsSync(modsPath)) {
             fs.mkdirSync(modsPath);
         }
 
+
         const mods = fs.readdirSync(modsPath);
-        if (mods == "" || settings.msm_directory == "") {
+        const modsCount = Object.keys(mods).length;
+        if (modsCount == 0) {
+            logger.info()
             mainWindow.webContents.executeJavaScript(`
-  document.getElementById("modList").innerHTML = '<li class="list-group-item" id="noMods" style="text-align: center;">' +
-    '<h3>No mods found</h3>' +
-    '<img src="https://images-ext-1.discordapp.net/external/d-EBv1nqbYspfTqKrMk796UXZ_5crvfHQ1Sa1040dE0/%3Fsize%3D128%26quality%3Dlossless/https/cdn.discordapp.com/emojis/1154955561943707720.webp?format=webp"/>' +
-  '</li>';
-`)
-                .catch(error => {
-                    console.error('Error executing JavaScript:', error.message);
-                });
+                document.getElementById("modList").innerHTML = '<li class="list-group-item" id="noMods" style="text-align: center;">' +
+                    '<h3>No mods found</h3>' +
+                    '<img src="https://images-ext-1.discordapp.net/external/d-EBv1nqbYspfTqKrMk796UXZ_5crvfHQ1Sa1040dE0/%3Fsize%3D128%26quality%3Dlossless/https/cdn.discordapp.com/emojis/1154955561943707720.webp?format=webp"/>' +
+                '</li>';
+            `).catch(error => {
+                logger.error('Error executing JavaScript:', error.message);
+            });
+        } else { // Clear the list
+            mainWindow.webContents.executeJavaScript(`
+                document.getElementById("modList").innerHTML = "";
+            `);
         }
 
         for (const mod of mods) {
@@ -224,7 +231,7 @@ ipcMain.on("toMain", function (event, args) {
             manager.launchGame(currentSettings, mainWindow);
         } else if (args[0] === "findMSM") {
             dialog.showOpenDialog(mainWindow, {
-                'defaultPath': "C:\\Program Files (x86)\\Steam\\steamapps\\common",
+                'defaultPath': "C:\\Program Files (x86)\\Steam\\steamapps\\common\\My Singing Monsters",
                 'title': "Open My Singing Monsters Directory",
                 'properties': [
                     'openDirectory'
