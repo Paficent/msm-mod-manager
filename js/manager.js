@@ -1,9 +1,10 @@
-const path = require('path');
-const fs = require('fs');
-const toml = require('./toml');
 const logger = require('./logger').logger;
-const {dialog} = require('electron');
 const { exec } = require('child_process');
+const {dialog} = require('electron');
+const toml = require('./toml');
+const path = require('path');
+const os =  require('os');
+const fs = require('fs');
 
 function createSubdirectoriesIfNotExist(dirPath) {
     const subdirectories = path.parse(dirPath).dir.split(path.sep);
@@ -21,9 +22,15 @@ function createSubdirectoriesIfNotExist(dirPath) {
     }, path.isAbsolute(dirPath) ? path.sep : '');
 }
 
-function fixGame(settings, dirname) {
+function fixGame(settings) {
     try {
-        const tmpPath = path.join(dirname, "/tmp");
+        var AppData = ""
+        if(os.platform() === "win32"){
+            AppData = path.join(process.env.AppData, "MSM_ModManager")
+        } else {
+            AppData = path.join(os.homedir(), "MSM_ModManager")
+        }
+        const tmpPath = path.join(AppData, "/tmp");
         const fixPath = path.join(tmpPath, "fix.toml");
 
         if (!fs.existsSync(tmpPath)) {

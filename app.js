@@ -4,6 +4,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const { autoUpdater } = require("electron-updater")
 const { toml, logger, manager, lua, sprite } = require('./js');
 const path = require('path');
+const os = require('os');
 const fs = require('fs');
 
 var isDebug = false;
@@ -20,9 +21,18 @@ function resetSettings() {
     writeSettings({ "msm_directory": "", "debug_mode": false, "ignore_conflicts": true, "disable_unsafe_lua_functions": true, "close_after_launch": false });
 }
 
-const settingsPath = path.join(originalDir, "settings.json");
+var AppData = ""
+if(os.platform() === "win32"){
+    AppData = path.join(process.env.AppData, "MSM_ModManager")
+} else {
+    AppData = path.join(os.homedir(), "MSM_ModManager")
+}
+const settingsPath = path.join(AppData, "settings.json");
 function createSettingsFileIfNotExists() {
     try {
+        if(!fs.existsSync(AppData)) {
+            fs.mkdirSync(AppData);
+        }
         if (!fs.existsSync(settingsPath)) {
             resetSettings(settingsPath)
         }
