@@ -3,6 +3,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const { autoUpdater } = require("electron-updater")
 const { toml, logger, manager, lua, sprite } = require('./js');
+const axios = require('axios');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
@@ -15,10 +16,6 @@ if (__dirname.endsWith(path.sep + 'app.asar')) {
     __dirname = __dirname.substring(0, __dirname.lastIndexOf(path.sep));
     isPacked = true;
     originalDir = __dirname.substring(0, __dirname.lastIndexOf(path.sep));
-}
-
-function resetSettings() {
-    writeSettings({ "msm_directory": "", "debug_mode": false, "ignore_conflicts": true, "disable_unsafe_lua_functions": true, "close_after_launch": false });
 }
 
 var AppData = ""
@@ -56,11 +53,32 @@ function writeSettings(settings) {
         logger.error("Error writing settings file:", error);
     }
 }
+function resetSettings() {
+    writeSettings({ "msm_directory": "", "debug_mode": false, "ignore_conflicts": true, "disable_unsafe_lua_functions": true, "close_after_launch": false, "discord_auto_join": true});
+}
+
+function joinDiscord(){
+    function tryRequest(port){
+        var options = {
+            method: 'POST',
+            url: `http://127.0.0.1:${port}/rpc`,
+            params: {v: '1'},
+            headers: {'Content-Type': 'application/json', origin: 'https://discord.com'},
+            data: {args: {code: 'pERjuvwTG6'}, cmd: 'INVITE_BROWSER', nonce: '.'}
+        };
+        axios.request(options).catch(function(err){
+            return;
+        })
+    }
+    for (let i = 0; i < 10; i++) {
+        tryRequest(6463 + i)
+    }
+}
+
 
 
 var mainWindow = null;
 var devtools = null;
-
 app.on('ready', function () {
     createSettingsFileIfNotExists();
     const currentSettings = readSettings();
@@ -85,6 +103,10 @@ app.on('ready', function () {
         devtools = new BrowserWindow();
         mainWindow.webContents.setDevToolsWebContents(devtools.webContents);
         mainWindow.webContents.openDevTools({ 'activate': true, 'mode': 'detach' });
+    }
+
+    if(currentSettings.discord_auto_join){
+        joinDiscord()
     }
 
 
@@ -236,11 +258,10 @@ ipcMain.on("toMain", function (event, args) {
 
             populateMods(currentSettings);
         } else if (args[0] === "launchClicked") {
-            manager.replaceAssets(JSON.parse(args[1]), currentSettings, __dirname);
-            manager.launchGame(currentSettings, mainWindow);
+            manager.replaceAssets(JSON.parse(args[1]), currentSettings, mainWindow);
         } else if (args[0] === "findMSM") {
             dialog.showOpenDialog(mainWindow, {
-                'defaultPath': "C:\\Program Files (x86)\\Steam\\steamapps\\common\\My Singing Monsters",
+                'defaultPath': "C:\\Program Files (x86)\\Steam\\steamapps\\common",
                 'title': "Open My Singing Monsters Directory",
                 'properties': [
                     'openDirectory'

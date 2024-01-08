@@ -1,6 +1,7 @@
 const logger = require('./logger').logger;
 const { exec } = require('child_process');
 const {dialog} = require('electron');
+const rimraf = require('rimraf');
 const toml = require('./toml');
 const path = require('path');
 const os =  require('os');
@@ -22,14 +23,25 @@ function createSubdirectoriesIfNotExist(dirPath) {
     }, path.isAbsolute(dirPath) ? path.sep : '');
 }
 
-function fixGame(settings) {
+
+function deleteEmptyDirectorys(filePath, originalPath) {
+    const parentDir = path.dirname(filePath);
+  
     try {
-        var AppData = ""
-        if(os.platform() === "win32"){
-            AppData = path.join(process.env.AppData, "MSM_ModManager")
-        } else {
-            AppData = path.join(os.homedir(), "MSM_ModManager")
+        const files = fs.readdirSync(parentDir);
+    
+        if (files.length === 0) {
+            rimraf.sync(parentDir);
+            logger.info(`Removing: ${originalPath.substring(0, originalPath.lastIndexOf('/'))}`);
         }
+    } catch (err) {
+        logger.error(`Error checking/deleting parent directory: ${err.message}`);
+    }
+}
+  
+
+function fixGame(settings, AppData) {
+    try {
         const tmpPath = path.join(AppData, "/tmp");
         const fixPath = path.join(tmpPath, "fix.toml");
 
@@ -50,14 +62,22 @@ function fixGame(settings) {
                 try {
                     const filePath = path.join(tmpPath, items[0])
                     const msmFilePath = path.join(msm_dir, "data", items[1])
-                    logger.info(`Fixing ${items[1]}`);
 
                     if(fs.existsSync(filePath)){
+                        logger.info(`Fixing: ${items[1]}`);
+
                         const newBuffer = fs.readFileSync(filePath);
                         fs.writeFileSync(msmFilePath, newBuffer);
                     } else {
-                        fs.unlinkSync(msmFilePath)
-                        //TODO delete directories mods make
+                        try {
+                            logger.info(`Removing: ${items[1]}`);
+                            if (fs.existsSync(msmFilePath)) {
+                                fs.unlinkSync(msmFilePath);
+                            }
+                            deleteEmptyDirectorys(msmFilePath, items[1]);
+                        } catch (deleteError) {
+                            logger.error(`Error deleting file ${msmFilePath}: ${deleteError.message}`);
+                        }
                     }
                 } catch (writeError) {
                     logger.error(`Error writing file ${items[1]}: ${writeError.message}`);
@@ -82,11 +102,18 @@ function fixGame(settings) {
     }
 }
 
-function replaceAssets(names, settings, dirname) {
+function replaceAssets(names, settings, mainWindow) {
     try {
-        fixGame(settings, dirname);
+        var AppData = ""
+        if(os.platform() === "win32"){
+            AppData = path.join(process.env.AppData, "MSM_ModManager")
+        } else {
+            AppData = path.join(os.homedir(), "MSM_ModManager")
+        }
+
+        fixGame(settings, AppData);
         const msm_dir = settings.msm_directory;
-        const fixPath = path.join(dirname, "tmp", "fix.toml");
+        const fixPath = path.join(AppData, "tmp", "fix.toml");
         names.forEach((name) => {
             const modPath = path.join(msm_dir, name);
             const info = toml.parse(fs.readFileSync(path.join(modPath, "info.toml"), 'utf-8'));
@@ -114,18 +141,19 @@ function replaceAssets(names, settings, dirname) {
                     const toCopy = path.join(modPath, "assets/" + paths[0]);
                     const toReplace = path.join(msm_dir, "data", paths[1]);
                     const toReplaceSimplified = paths[1].substring(paths[1].lastIndexOf('/'));
-                    const tmpPath = path.join(dirname, "/tmp", toReplaceSimplified);
+                    const tmpPath = path.join(AppData, "/tmp", toReplaceSimplified);
                     const newBuffer = fs.readFileSync(toCopy);
     
-                    logger.info(`Replacing ${toReplaceSimplified}`);
     
                     if (fs.existsSync(toReplace)) {
+                        logger.info(`Replacing: ${toReplaceSimplified}`);
+
                         fs.copyFileSync(toReplace, tmpPath);
                         fs.writeFileSync(toReplace, newBuffer);
     
                         replace.push([toReplaceSimplified, paths[1]]);
                     } else {
-                        logger.info(`Creating ${toReplaceSimplified}`);
+                        logger.info(`Creating: ${toReplaceSimplified}`);
                         createSubdirectoriesIfNotExist(toReplace)
                         fs.writeFileSync(toReplace, newBuffer);
     
@@ -137,6 +165,11 @@ function replaceAssets(names, settings, dirname) {
             fix.assets = fix.assets.concat(replace);
             fs.writeFileSync(fixPath, toml.stringify(fix));
         })
+
+        launchGame(settings,mainWindow)
+
+
+
     } catch (error) {
         logger.error("Error replacing assets:", error);
     }
@@ -159,12 +192,15 @@ function launchGame(settings, mainWindow) {
         } else {
             exec('taskkill /IM "MySingingMonsters.exe" /F').on('exit', () => {
                 logger.info("Successfully killed MySingingMonsters.exe")
+
                 exec(`cmd /K "${path.join(settings.msm_directory, "MySingingMonsters.exe")}"`); // Launch The Game
                 logger.info("Successfully launched MySingingMonsters.exe")
+
                 if (settings.close_after_launch) {
                     mainWindow.close();
                 }
-            });
+            })
+
         }
     } catch (error) {
         logger.error("Error launching the game:", error);

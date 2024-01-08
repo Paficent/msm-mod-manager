@@ -21,6 +21,7 @@
         "axios": "^1.6.5",
         "electron-updater": "^6.1.7",
         "jimp": "^0.3.5",
+        "rifraf": "^2.0.3",
         "winston": "^3.11.0",
         "xml-js": "^1.6.11"
     },
