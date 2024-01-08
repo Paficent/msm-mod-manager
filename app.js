@@ -2,7 +2,7 @@
 
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const { autoUpdater } = require("electron-updater")
-const { toml, logger, manager, sprite } = require('./js');
+const { toml, logger, manager, lua, sprite } = require('./js');
 const path = require('path');
 const fs = require('fs');
 
@@ -113,7 +113,6 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
         if (returnValue.response === 0) autoUpdater.quitAndInstall()
     })
 })
-
 
 function populateMods(settings) {
     try {
@@ -261,6 +260,19 @@ ipcMain.on("toMain", function (event, args) {
             })
         } else if(args[0] === "generateToml"){
             toml.generate(args[1], args[2], args[3], args[4], args[5])
+        } else if(args[0] === "decompileLua") {
+            lua.decompile(args[1])
+        } else if (args[0] === "findLuaFile"){
+            dialog.showOpenDialog(mainWindow, {
+                'title': "Open Lua File",
+                'properties': [
+                    'openFile'
+                ]
+            }).then((out) =>{
+                if(!out.canceled && out.filePaths[0] && fs.existsSync(out.filePaths[0])){
+                    mainWindow.webContents.executeJavaScript(`document.getElementById("luaFileInput").value = "${out.filePaths[0].replaceAll(path.sep, "/")}"`)
+                }
+            })
         }
     } catch (error) {
         logger.error("Error in IPC Main:", error);

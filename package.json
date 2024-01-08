@@ -1,7 +1,7 @@
 {
     "name": "launcher",
     "productName": "MSM Mod Manager",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Manage your mods in My Singing Monsters Steam!",
     "main": "app.js",
     "author": "Paficent",

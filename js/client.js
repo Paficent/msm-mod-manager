@@ -126,7 +126,10 @@ try {
 
 
     //Tools
-
+        //Toml
+    document.getElementById("findTomlFolder").addEventListener("click", function(){
+        window.api.send("toMain", ["findTomlFolder"]);
+    })
     document.getElementById("generateToml").addEventListener("click", function(){
         const name = document.getElementById("modNameInput").value || "Unknown Mod";
         const description = document.getElementById("modDescriptionInput").value || "???";
@@ -136,13 +139,17 @@ try {
         window.api.send("toMain", ["generateToml", name, description, creator, version, modPath]);
     })
 
-    document.getElementById("findTomlFolder").addEventListener("click", function(){
-        window.api.send("toMain", ["findTomlFolder"]);
+
+
+        //Lua
+    document.getElementById("findLuaFile").addEventListener("click", function(){
+        window.api.send("toMain", ["findLuaFile"]);
     })
-
-
-
-
+    document.getElementById("decompileLua").addEventListener("click", function(){
+        const luaPath = document.getElementById("luaFileInput").value;
+        console.log(luaPath)
+        window.api.send("toMain", ["decompileLua", luaPath]);
+    })
 
 
 
