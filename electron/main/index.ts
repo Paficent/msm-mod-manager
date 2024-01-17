@@ -8,6 +8,14 @@ import fs from "fs";
 
 import { addListeners } from "./ipcMain";
 
+declare global {
+  var win: null | BrowserWindow;
+}
+
+const width = 1000;
+const height = 800;
+
+const isDev = app.isPackaged;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -105,15 +113,15 @@ async function joinDiscord() {
   }
 }
 
-let win: BrowserWindow | null = null;
+global.win = null;
 const preload = join(__dirname, "../preload/index.mjs");
 const url = process.env.VITE_DEV_SERVER_URL;
 const indexHtml = join(process.env.DIST, "index.html");
 
 async function createWindow() {
   win = new BrowserWindow({
-    width: 1000,
-    height: 800,
+    width: width,
+    height: height,
     frame: false,
     icon: join(process.env.VITE_PUBLIC, "favicon.ico"),
     webPreferences: {
@@ -137,7 +145,9 @@ async function createWindow() {
     return { action: "deny" };
   });
 
-  joinDiscord().then();
+  if (isDev) {
+    joinDiscord().then();
+  }
   addListeners().then();
 }
 
