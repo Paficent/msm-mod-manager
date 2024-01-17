@@ -1,4 +1,5 @@
 import {type HandlerExport} from 'electron/types';
+import {launchGame} from './manager';
 
 async function checkboxChanged(
 	event: Electron.IpcMainInvokeEvent,
@@ -18,7 +19,7 @@ async function clickLaunch(
 	event: Electron.IpcMainInvokeEvent,
 	...args: any[]
 ) {
-	console.log('Launch Game');
+	await launchGame();
 }
 
 async function clickMinimize(

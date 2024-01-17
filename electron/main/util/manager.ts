@@ -1,7 +1,14 @@
-import {writeFile, readFile, copyFile, unlink, mkdir, readdir} from 'node:fs/promises';
-import {join, dirname, parse, sep, isAbsolute} from 'node:path';
+import {
+	writeFile,
+	readFile,
+	copyFile,
+	unlink,
+	mkdir,
+	readdir,
+} from 'node:fs/promises';
 import {existsSync, readFileSync} from 'node:fs';
-import {exec} from 'child_process';
+import {join, dirname, parse, sep, isAbsolute} from 'node:path';
+import {exec, spawn, type ChildProcess} from 'child_process';
 import {dialog} from 'electron';
 import {sync} from 'rimraf';
 
@@ -10,8 +17,7 @@ type Asset = [string, string];
 type Fix = {assets: Asset[]};
 
 async function createSubdirectoriesIfNotExist(dirPath: string): Promise<void> {
-	const subdirectories = parse(dirPath).dir.split(sep);
-	subdirectories.shift();
+	const subdirectories = parse(dirPath).dir.split(sep).slice(1);
 
 	let currentPath = isAbsolute(dirPath) ? sep : '';
 	const mkdirPromises: Array<Promise<void>> = [];
@@ -27,7 +33,10 @@ async function createSubdirectoriesIfNotExist(dirPath: string): Promise<void> {
 	await Promise.all(mkdirPromises);
 }
 
-async function deleteEmptyDirectories(filePath: string, originalPath: string): Promise<void> {
+async function deleteEmptyDirectories(
+	filePath: string,
+	originalPath: string,
+): Promise<void> {
 	const parentDir = dirname(filePath);
 
 	try {
@@ -44,22 +53,21 @@ async function deleteEmptyDirectories(filePath: string, originalPath: string): P
 	}
 }
 
-async function readInfoFile(modPath: string): Promise<{assets: Asset[]}> {
-	const infoFilePath = join(modPath, 'info.toml');
-	const fileContent = await readFile(infoFilePath);
-	return JSON.parse(fileContent.toString()) as {assets: Asset[]};
-}
-
-async function readFixFile(fixPath: string): Promise<Fix> {
+async function readJsonFile(filePath: string): Promise<any> {
 	try {
-		const fixContent = await readFile(fixPath);
-		return JSON.parse(fixContent.toString()) as Fix;
+		const fileContent = await readFile(filePath);
+		return JSON.parse(fileContent.toString()) as JSON;
 	} catch (err) {
-		return {assets: []};
+		return null;
 	}
 }
 
-async function processAssets(assets: Asset[], fix: Fix, modPath: string, msmDirectory: string): Promise<Asset[]> {
+async function processAssets(
+	assets: Asset[],
+	fix: Fix,
+	modPath: string,
+	msmDirectory: string,
+): Promise<Asset[]> {
 	const promises: Array<Promise<void>> = [];
 	const replace: Asset[] = [];
 
@@ -92,7 +100,10 @@ async function processAssets(assets: Asset[], fix: Fix, modPath: string, msmDire
 	return replace;
 }
 
-async function handleMissingFile(msmFilePath: string, itemName: string): Promise<void> {
+async function handleMissingFile(
+	msmFilePath: string,
+	itemName: string,
+): Promise<void> {
 	console.log(`Removing ${itemName}`);
 
 	if (existsSync(msmFilePath)) {
@@ -119,26 +130,28 @@ async function fixGame(): Promise<void> {
 			await writeFile(fixFilePath, '{"assets": ["hi","lol"]}');
 		}
 
-		const fixContents = await readFixFile(fixFilePath);
-		const assets: Item[] = fixContents.assets || [];
+		const fixContents = await readJsonFile(fixFilePath) as Fix;
+		const assets: Item[] = fixContents?.assets ?? [];
 
-		await Promise.all(assets.map(async (items: Item) => {
-			try {
-				const filePath = join(tmpDirectory, items[0]);
-				const msmFilePath = join(settings.msmDirectory, 'data', items[1]);
+		await Promise.all(
+			assets.map(async (items: Item) => {
+				try {
+					const filePath = join(tmpDirectory, items[0]);
+					const msmFilePath = join(settings.msmDirectory, 'data', items[1]);
 
-				if (existsSync(filePath)) {
-					console.log(`Fixing ${items[1]}`);
+					if (existsSync(filePath)) {
+						console.log(`Fixing ${items[1]}`);
 
-					const newBuffer = await readFile(filePath);
-					await writeFile(msmFilePath, newBuffer);
-				} else {
-					await handleMissingFile(msmFilePath, items[1]);
+						const newBuffer = await readFile(filePath);
+						await writeFile(msmFilePath, newBuffer);
+					} else {
+						await handleMissingFile(msmFilePath, items[1]);
+					}
+				} catch (error) {
+					console.error(getErrorMessage(error));
 				}
-			} catch (error) {
-				console.error(getErrorMessage(error));
-			}
-		}));
+			}),
+		);
 	} catch (error) {
 		console.error(getErrorMessage(error));
 	}
@@ -146,17 +159,17 @@ async function fixGame(): Promise<void> {
 
 async function launchGame(): Promise<void> {
 	try {
-		if (!mainWindow) {
-			return;
-		}
+		if (
+			!mainWindow
+|| settings.msmDirectory === ''
+|| !existsSync(settings.msmDirectory)
+		) {
+			const errorMessage
+= settings.msmDirectory === ''
+	? 'Couldn\'t find \'MySingingMonsters\' folder, please input the \'MySingingMonsters\' folder in the settings window'
+	: 'The path to \'MySingingMonsters\' has changed.\nInput the \'MySingingMonsters\' path in the settings menu.';
 
-		if (settings.msmDirectory === '') {
-			await showErrorDialog('Error', 'Couldn\'t find \'MySingingMonsters\' folder, please input the \'MySingingMonsters\' folder in the settings window');
-			return;
-		}
-
-		if (!existsSync(settings.msmDirectory)) {
-			await showErrorDialog('Error', 'The path to \'MySingingMonsters\' has changed.\nInput the \'MySingingMonsters\' path in the settings menu.');
+			await showErrorDialog('Error', errorMessage);
 			return;
 		}
 
@@ -190,8 +203,35 @@ async function killProcess(processName: string): Promise<void> {
 	});
 }
 
-async function launchProcess(command: string): Promise<void> {
-	exec(`cmd /K "${command}"`);
+async function launchProcess(command: string): Promise<void> { // This hell to stop memory leakage
+	let childProcess: ChildProcess | undefined;
+	try {
+		childProcess = spawn('cmd', ['/C', `"${command}"`], {shell: true, windowsHide: true, timeout: 10000});
+
+		await new Promise<void>((resolve, reject) => {
+			if (!childProcess) {
+				reject(new Error('Failed to spawn child process'));
+				return;
+			}
+
+			childProcess.on('exit', (code, signal) => {
+				if (code === 0) {
+					resolve();
+				}
+			});
+
+			// Handle errors
+			childProcess.on('error', err => {
+				reject(new Error(`Error spawning process: ${err.message}`));
+			});
+		});
+	} finally {
+		setTimeout(async () => {
+			if (childProcess?.pid !== undefined) {
+				await killProcess(childProcess.pid.toString());
+			}
+		}, 1000);
+	}
 }
 
 async function replaceAssets(names: string[]): Promise<void> {
@@ -201,15 +241,22 @@ async function replaceAssets(names: string[]): Promise<void> {
 		const fixPath = join(appDirectory, 'tmp', 'fix.json');
 		const promises: Array<Promise<void>> = [];
 
-		await Promise.all(names.map(async name => {
-			const modPath = join(msmDirectory, name);
-			const {assets} = await readInfoFile(modPath);
-			const fix: Fix = await readFixFile(fixPath);
-			const replace: Asset[] = await processAssets(assets, fix, modPath, msmDirectory);
+		await Promise.all(
+			names.map(async name => {
+				const modPath = join(msmDirectory, name);
+				const {assets} = await readJsonFile(join(modPath, 'info.json')) as Fix;
+				const fix = await readJsonFile(fixPath) as Fix;
+				const replace: Asset[] = await processAssets(
+					assets,
+					fix,
+					modPath,
+					msmDirectory,
+				);
 
-			fix.assets = fix.assets.concat(replace);
-			promises.push(writeFile(fixPath, JSON.stringify(fix)));
-		}));
+				fix.assets = fix.assets.concat(replace);
+				promises.push(writeFile(fixPath, JSON.stringify(fix)));
+			}),
+		);
 
 		await Promise.all(promises);
 	} catch (err) {
