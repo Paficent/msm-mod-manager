@@ -7,7 +7,7 @@ type Item = [string, string];
 type Asset = [string, string];
 type Fix = {assets: Asset[]};
 
-async function createSubdirectoriesIfNotExist(dirPath: string) {
+async function createSubdirectoriesIfNotExist(dirPath: string): Promise<void> {
 	const subdirectories = parse(dirPath).dir.split(sep);
 	subdirectories.shift();
 
@@ -25,7 +25,7 @@ async function createSubdirectoriesIfNotExist(dirPath: string) {
 	await Promise.all(mkdirPromises);
 }
 
-async function deleteEmptyDirectorys(filePath: string, originalPath: string) {
+async function deleteEmptyDirectories(filePath: string, originalPath: string): Promise<void> {
 	const parentDir = dirname(filePath);
 
 	try {
@@ -38,30 +38,91 @@ async function deleteEmptyDirectorys(filePath: string, originalPath: string) {
 			sync(parentDir);
 		}
 	} catch (err) {
-		console.log('Error checking/deleting parent directory');
+		console.error(getErrorMessage(err));
 	}
 }
 
-async function fixGame() {
-	const tmpPath: string = join(appDirectory, '/tmp');
-	const fixPath: string = join(tmpPath, 'fix.json');
+async function readInfoFile(modPath: string): Promise<{assets: Asset[]}> {
+	const infoFilePath = join(modPath, 'info.toml');
+	const fileContent = await readFile(infoFilePath);
+	return JSON.parse(fileContent.toString()) as {assets: Asset[]};
+}
 
-	if (!existsSync(tmpPath)) {
-		await mkdir(tmpPath);
+async function readFixFile(fixPath: string): Promise<Fix> {
+	try {
+		const fixContent = await readFile(fixPath);
+		return JSON.parse(fixContent.toString()) as Fix;
+	} catch (err) {
+		return {assets: []};
+	}
+}
+
+async function processAssets(assets: Asset[], fix: Fix, modPath: string, msmDirectory: string): Promise<Asset[]> {
+	const promises: Array<Promise<void>> = [];
+	const replace: Asset[] = [];
+
+	for (const [index, paths] of Object.entries(assets)) {
+		const isConflict = fix.assets.some(asset => asset.includes(paths[1]));
+
+		if (isConflict) {
+			console.log(`Skipped conflict ${paths[1]}`);
+		} else {
+			const toCopy = join(modPath, 'assets', paths[0]);
+			const toReplace = join(msmDirectory, 'data', paths[1]);
+			const toReplaceSimplified = paths[1].substring(paths[1].lastIndexOf('/'));
+			const tmpPath = join(appDirectory, 'tmp', toReplaceSimplified);
+			const newBuffer = await readFile(toCopy);
+
+			if (existsSync(toReplace)) {
+				console.log(`Replacing ${toReplaceSimplified}`);
+				promises.push(copyFile(toReplace, tmpPath));
+			} else {
+				console.log(`Creating ${toReplaceSimplified}`);
+				promises.push(createSubdirectoriesIfNotExist(toReplace));
+			}
+
+			promises.push(writeFile(toReplace, newBuffer));
+			replace.push([toReplaceSimplified, paths[1]]);
+		}
 	}
 
-	if (!existsSync(fixPath)) {
-		await writeFile(fixPath, '{"assets": ["hi","lol"]}');
+	await Promise.all(promises);
+	return replace;
+}
+
+async function handleMissingFile(msmFilePath: string, itemName: string): Promise<void> {
+	console.log(`Removing ${itemName}`);
+
+	if (existsSync(msmFilePath)) {
+		await unlink(msmFilePath);
 	}
 
-	const fixContents = JSON.parse((await readFile(fixPath)).toString()) as {assets: [[string, string]]};
-	const assets: Item[] = fixContents.assets || [];
+	await deleteEmptyDirectories(msmFilePath, itemName);
+}
 
-	if (assets) {
-		assets.forEach((async (items: Item) => {
+function getErrorMessage(error: any): string {
+	return error instanceof Error ? error.message : String(error);
+}
+
+async function fixGame(): Promise<void> {
+	const tmpDirectory = join(appDirectory, 'tmp');
+	const fixFilePath = join(tmpDirectory, 'fix.json');
+
+	try {
+		if (!existsSync(tmpDirectory)) {
+			await mkdir(tmpDirectory);
+		}
+
+		if (!existsSync(fixFilePath)) {
+			await writeFile(fixFilePath, '{"assets": ["hi","lol"]}');
+		}
+
+		const fixContents = await readFixFile(fixFilePath);
+		const assets: Item[] = fixContents.assets || [];
+
+		await Promise.all(assets.map(async (items: Item) => {
 			try {
-				console.log(items);
-				const filePath = join(tmpPath, items[0]);
+				const filePath = join(tmpDirectory, items[0]);
 				const msmFilePath = join(settings.msmDirectory, 'data', items[1]);
 
 				if (existsSync(filePath)) {
@@ -70,31 +131,18 @@ async function fixGame() {
 					const newBuffer = await readFile(filePath);
 					await writeFile(msmFilePath, newBuffer);
 				} else {
-					try {
-						console.log(`Removing ${items[1]}`);
-						if (existsSync(msmFilePath)) {
-							await unlink(msmFilePath);
-						}
-
-						await deleteEmptyDirectorys(msmFilePath, items[1]);
-					} catch (deleteError) {
-						if (deleteError instanceof Error) {
-							console.log(
-								`Error deleting file ${msmFilePath}: ${deleteError.message}`,
-							);
-						}
-					}
+					await handleMissingFile(msmFilePath, items[1]);
 				}
-			} catch (writeError) {
-				if (writeError instanceof Error) {
-					console.log(writeError.message);
-				}
+			} catch (error) {
+				console.error(getErrorMessage(error));
 			}
 		}));
+	} catch (error) {
+		console.error(getErrorMessage(error));
 	}
 }
 
-async function replaceAssets(names: string[]) {
+async function replaceAssets(names: string[]): Promise<void> {
 	try {
 		await fixGame();
 		const {msmDirectory} = settings;
@@ -103,46 +151,9 @@ async function replaceAssets(names: string[]) {
 
 		await Promise.all(names.map(async name => {
 			const modPath = join(msmDirectory, name);
-			const {assets} = JSON.parse((await readFile(join(modPath, 'info.toml'))).toString()) as {assets: Asset[]};
-			let fix: Fix = {assets: []};
-
-			if (existsSync(fixPath)) {
-				fix = JSON.parse((await readFile(fixPath)).toString()) as Fix;
-			}
-
-			const replace: Asset[] = [];
-
-			for (const [index, paths] of Object.entries(assets)) {
-				const isConflict = fix.assets.some(asset => asset.includes(paths[1]));
-
-				if (isConflict) {
-					console.log(`Skipped conflict ${paths[1]}`);
-				} else {
-					const toCopy = join(modPath, 'assets/' + paths[0]);
-					const toReplace = join(msmDirectory, 'data', paths[1]);
-					const toReplaceSimplified = paths[1].substring(
-						paths[1].lastIndexOf('/'),
-					);
-					const tmpPath = join(appDirectory, '/tmp', toReplaceSimplified);
-					const newBuffer = readFileSync(toCopy);
-
-					if (existsSync(toReplace)) {
-						console.log(`Replacing ${toReplaceSimplified}`);
-
-						promises.push(copyFile(toReplace, tmpPath));
-						promises.push(writeFile(toReplace, newBuffer));
-
-						replace.push([toReplaceSimplified, paths[1]]);
-					} else {
-						console.log(`Creating ${toReplaceSimplified}`);
-
-						promises.push(createSubdirectoriesIfNotExist(toReplace));
-						promises.push(writeFile(toReplace, newBuffer));
-
-						replace.push([toReplaceSimplified, paths[1]]);
-					}
-				}
-			}
+			const {assets} = await readInfoFile(modPath);
+			const fix: Fix = await readFixFile(fixPath);
+			const replace: Asset[] = await processAssets(assets, fix, modPath, msmDirectory);
 
 			fix.assets = fix.assets.concat(replace);
 			promises.push(writeFile(fixPath, JSON.stringify(fix)));
@@ -150,7 +161,7 @@ async function replaceAssets(names: string[]) {
 
 		await Promise.all(promises);
 	} catch (err) {
-		console.error(err);
+		console.error(getErrorMessage(err));
 	}
 }
 
