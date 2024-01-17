@@ -1,5 +1,5 @@
 import { ipcMain } from "electron";
-import handlers from "./handlers";
+import handlers from "./util/handlers";
 import { handlerExport } from "electron/types";
 
 async function addListeners() {
