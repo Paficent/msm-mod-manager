@@ -3,4 +3,13 @@ type HandlerExport = {
 	listener: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => any;
 };
 
-export type {HandlerExport};
+type ModManagerSetting = {
+	msmDirectory: string;
+	debugMode: boolean;
+	ignoreConflicts: boolean;
+	disableUnsafeLuaFunctions: boolean;
+	closeAfterLaunch: boolean;
+	discordAutoJoin: boolean;
+};
+
+export type {HandlerExport, ModManagerSetting};

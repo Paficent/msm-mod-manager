@@ -3,11 +3,13 @@
  */
 {
   appId: "com.Paficent.Test123",
-  asar: true,
+  asar: false,
+  icon: "build/icon",
   directories: {
     output: "release/${version}",
   },
   files: ["dist-electron", "dist"],
+  extraFiles: ["build"],
   win: {
     target: [
       {

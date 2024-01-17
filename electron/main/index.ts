@@ -1,23 +1,25 @@
+/* eslint-disable no-var */
+import {type ModManagerSetting} from 'electron/types';
 
 import {app, BrowserWindow} from 'electron';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import axios from 'axios';
-import path from 'path';
-import os from 'os';
-import fs from 'fs';
 
+import {checkIfSettingsExists} from './util/settings';
 import {addListeners} from './ipcMain';
+import {fixGame} from './util/manager';
 
 declare global {
-	// eslint-disable-next-line no-var
 	var win: undefined | BrowserWindow;
+	var settings: ModManagerSetting;
+	var appDirectory: string;
+	var checkboxes: unknown;
 }
 
 const width = 1000;
 const height = 800;
 
-const isDev = app.isPackaged;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -36,67 +38,6 @@ if (!app.requestSingleInstanceLock()) {
 	app.quit();
 	process.exit(0);
 }
-
-function getAppDirectory(): string {
-	function getAppData(): string {
-		if (process.env.AppData !== undefined && typeof (process.env.AppData) === 'string') {
-			return process.env.AppData;
-		}
-
-		return '';
-	}
-
-	if (os.platform() === 'win32') {
-		return path.join(getAppData(), 'MSM_ModManager');
-	}
-
-	return path.join(os.homedir(), 'MSM_ModManager');
-}
-
-const appDirectory = getAppDirectory();
-
-const settingsPath = path.join(appDirectory, 'settings.json');
-const settings = {
-	checkIfExists(): void {
-		try {
-			if (!fs.existsSync(appDirectory)) {
-				fs.mkdirSync(appDirectory);
-			}
-
-			if (!fs.existsSync(settingsPath)) {
-				settings.reset();
-			}
-		} catch (error) {
-			console.error('Error checking/creating settings file:', error);
-		}
-	},
-	reset(): void {
-		settings.write({
-			msmDirectory: '',
-			debugMode: false,
-			ignoreConflicts: true,
-			disableUnsafeLuaFunctions: true,
-			closeAfterLaunch: false,
-			discordAutoJoin: true,
-		});
-	},
-	read(): any {
-		try {
-			const content = fs.readFileSync(settingsPath, 'utf-8');
-			return JSON.parse(content);
-		} catch (error) {
-			console.error('Error reading settings file:', error);
-			return undefined;
-		}
-	},
-	write(settings: Record<string, unknown>) {
-		try {
-			fs.writeFileSync(settingsPath, JSON.stringify(settings));
-		} catch (error) {
-			console.error('Error writing settings file:', error);
-		}
-	},
-};
 
 async function joinDiscord(): Promise<void> {
 	async function tryRequest(port: string | number): Promise<void> {
@@ -139,20 +80,21 @@ async function createWindow(): Promise<void> {
 		},
 	});
 
+	checkIfSettingsExists();
+
+	await fixGame();
+
 	if (url) {
 		await win.loadURL(url);
 		win.webContents.openDevTools({mode: 'detach'});
 	} else {
 		await win.loadFile(indexHtml);
+		await joinDiscord();
 	}
 
 	win.webContents.on('did-finish-load', () => {
 		win?.webContents.send('main-process-message', new Date().toLocaleString());
 	});
-
-	if (isDev) {
-		await joinDiscord();
-	}
 
 	await addListeners();
 }
@@ -172,3 +114,4 @@ app.on('activate', () => {
 		void createWindow();
 	}
 });
+

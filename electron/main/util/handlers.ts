@@ -1,4 +1,4 @@
-import {type handlerExport} from 'electron/types';
+import {type HandlerExport} from 'electron/types';
 
 async function checkboxChanged(
 	event: Electron.IpcMainInvokeEvent,
@@ -47,7 +47,7 @@ async function clickClose(event: Electron.IpcMainInvokeEvent, ...args: any[]): P
 	}
 }
 
-const handlers: handlerExport[] = [
+const handlers: HandlerExport[] = [
 	// Mod Card Handlers
 	{
 		channel: 'checkboxChanged',

@@ -20,7 +20,7 @@ const ModCard = function (props: {
 	const [isChecked, setIsChecked] = useState(false);
 
 	const updateCheckbox = (checkboxKey: string, checkboxState: boolean): void => {
-		void window.ipcRenderer.invoke('checkbox_changed', {
+		void window.ipcRenderer.invoke('checkboxChanged', {
 			key: checkboxKey,
 			state: checkboxState,
 		});
