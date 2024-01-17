@@ -106,12 +106,12 @@ app.on('window-all-closed', () => {
 	app.quit();
 });
 
-app.on('activate', () => {
+app.on('activate', async () => {
 	const allWindows = BrowserWindow.getAllWindows();
 	if (allWindows.length > 0) {
 		allWindows[0].focus();
 	} else {
-		void createWindow();
+		await createWindow();
 	}
 });
 
