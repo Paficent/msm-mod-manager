@@ -11,7 +11,7 @@ import {addListeners} from './ipcMain';
 import {fixGame} from './util/manager';
 
 declare global {
-	var win: undefined | BrowserWindow;
+	var mainWindow: undefined | BrowserWindow;
 	var settings: ModManagerSetting;
 	var appDirectory: string;
 	var checkboxes: unknown;
@@ -61,13 +61,13 @@ async function joinDiscord(): Promise<void> {
 	}
 }
 
-global.win = undefined;
+global.mainWindow = undefined;
 const preload = join(__dirname, '../preload/index.mjs');
 const url = process.env.VITE_DEV_SERVER_URL;
 const indexHtml = join(process.env.DIST, 'index.html');
 
 async function createWindow(): Promise<void> {
-	win = new BrowserWindow({
+	mainWindow = new BrowserWindow({
 		width,
 		height,
 		minHeight: 425,
@@ -85,15 +85,15 @@ async function createWindow(): Promise<void> {
 	await fixGame();
 
 	if (url) {
-		await win.loadURL(url);
-		win.webContents.openDevTools({mode: 'detach'});
+		await mainWindow.loadURL(url);
+		mainWindow.webContents.openDevTools({mode: 'detach'});
 	} else {
-		await win.loadFile(indexHtml);
+		await mainWindow.loadFile(indexHtml);
 		await joinDiscord();
 	}
 
-	win.webContents.on('did-finish-load', () => {
-		win?.webContents.send('main-process-message', new Date().toLocaleString());
+	mainWindow.webContents.on('did-finish-load', () => {
+		mainWindow?.webContents.send('main-process-message', new Date().toLocaleString());
 	});
 
 	await addListeners();
@@ -102,7 +102,7 @@ async function createWindow(): Promise<void> {
 void app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
-	win = undefined;
+	mainWindow = undefined;
 	app.quit();
 });
 

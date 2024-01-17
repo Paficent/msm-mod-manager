@@ -25,8 +25,8 @@ async function clickMinimize(
 	event: Electron.IpcMainInvokeEvent,
 	...args: any[]
 ) {
-	if (win?.isMinimizable) {
-		win?.minimize();
+	if (mainWindow?.isMinimizable) {
+		mainWindow?.minimize();
 	}
 }
 
@@ -34,16 +34,16 @@ async function clickResize(
 	event: Electron.IpcMainInvokeEvent,
 	...args: any[]
 ) {
-	if (win?.isMaximizable && !win.isMaximized()) {
-		win?.maximize();
-	} else if (win?.isMaximized()) {
-		win.unmaximize();
+	if (mainWindow?.isMaximizable && !mainWindow.isMaximized()) {
+		mainWindow?.maximize();
+	} else if (mainWindow?.isMaximized()) {
+		mainWindow.unmaximize();
 	}
 }
 
 async function clickClose(event: Electron.IpcMainInvokeEvent, ...args: any[]): Promise<void> {
-	if ((win?.isClosable) !== null) {
-		win?.close();
+	if ((mainWindow?.isClosable) !== null) {
+		mainWindow?.close();
 	}
 }
 

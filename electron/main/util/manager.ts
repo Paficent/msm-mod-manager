@@ -1,6 +1,8 @@
+import {writeFile, readFile, copyFile, unlink, mkdir, readdir} from 'node:fs/promises';
 import {join, dirname, parse, sep, isAbsolute} from 'node:path';
 import {existsSync, readFileSync} from 'node:fs';
-import {writeFile, readFile, copyFile, unlink, mkdir, readdir} from 'node:fs/promises';
+import {exec} from 'child_process';
+import {dialog} from 'electron';
 import {sync} from 'rimraf';
 
 type Item = [string, string];
@@ -71,7 +73,7 @@ async function processAssets(assets: Asset[], fix: Fix, modPath: string, msmDire
 			const toReplace = join(msmDirectory, 'data', paths[1]);
 			const toReplaceSimplified = paths[1].substring(paths[1].lastIndexOf('/'));
 			const tmpPath = join(appDirectory, 'tmp', toReplaceSimplified);
-			const newBuffer = await readFile(toCopy);
+			const newBuffer = readFileSync(toCopy);
 
 			if (existsSync(toReplace)) {
 				console.log(`Replacing ${toReplaceSimplified}`);
@@ -142,6 +144,56 @@ async function fixGame(): Promise<void> {
 	}
 }
 
+async function launchGame(): Promise<void> {
+	try {
+		if (!mainWindow) {
+			return;
+		}
+
+		if (settings.msmDirectory === '') {
+			await showErrorDialog('Error', 'Couldn\'t find \'MySingingMonsters\' folder, please input the \'MySingingMonsters\' folder in the settings window');
+			return;
+		}
+
+		if (!existsSync(settings.msmDirectory)) {
+			await showErrorDialog('Error', 'The path to \'MySingingMonsters\' has changed.\nInput the \'MySingingMonsters\' path in the settings menu.');
+			return;
+		}
+
+		console.log('Killing MySingingMonsters.exe');
+		await killProcess('MySingingMonsters.exe');
+
+		console.log('Launching MySingingMonsters.exe');
+		await launchProcess(join(settings.msmDirectory, 'MySingingMonsters.exe'));
+
+		if (settings.closeAfterLaunch) {
+			mainWindow?.close();
+		}
+	} catch (err) {
+		console.error(getErrorMessage(err));
+	}
+}
+
+async function showErrorDialog(title: string, message: string): Promise<void> {
+	if (mainWindow) {
+		await dialog.showMessageBox(mainWindow, {
+			title,
+			message,
+			buttons: ['OK'],
+		});
+	}
+}
+
+async function killProcess(processName: string): Promise<void> {
+	return new Promise(resolve => {
+		exec(`taskkill /IM "${processName}" /F`).on('exit', resolve);
+	});
+}
+
+async function launchProcess(command: string): Promise<void> {
+	exec(`cmd /K "${command}"`);
+}
+
 async function replaceAssets(names: string[]): Promise<void> {
 	try {
 		await fixGame();
@@ -165,4 +217,4 @@ async function replaceAssets(names: string[]): Promise<void> {
 	}
 }
 
-export {fixGame, replaceAssets};
+export {fixGame, replaceAssets, launchGame};
