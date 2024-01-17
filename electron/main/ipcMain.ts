@@ -1,10 +1,11 @@
-import { ipcMain } from "electron";
-import handlers from "./util/handlers";
-import { handlerExport } from "electron/types";
+import {ipcMain} from 'electron';
+import handlers from './util/handlers';
+import {type HandlerExport} from 'electron/types';
 
-async function addListeners() {
-  handlers.forEach((handler: handlerExport) => {
-    ipcMain.handle(handler.channel, handler.listener);
-  });
+async function addListeners(): Promise<void> {
+	handlers.forEach((handler: HandlerExport) => {
+		ipcMain.handle(handler.channel, handler.listener);
+	});
 }
-export { addListeners };
+
+export {addListeners};

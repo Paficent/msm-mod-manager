@@ -1,6 +1,6 @@
-type handlerExport = {
-  channel: string;
-  listener: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => any;
+type HandlerExport = {
+	channel: string;
+	listener: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => any;
 };
 
-export type { handlerExport };
+export type {HandlerExport};

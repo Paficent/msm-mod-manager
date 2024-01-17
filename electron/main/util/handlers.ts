@@ -1,81 +1,82 @@
-import { handlerExport } from "electron/types";
+import {type handlerExport} from 'electron/types';
 
-async function checkbox_changed(
-  event: Electron.IpcMainInvokeEvent,
-  ...args: any[]
+async function checkboxChanged(
+	event: Electron.IpcMainInvokeEvent,
+	...args: any[]
 ) {
-  console.log(args);
-  return;
-}
-
-async function click_refresh(
-  event: Electron.IpcMainInvokeEvent,
-  ...args: any[]
-) {
-  console.log("refresh mods");
+	console.log(args);
 }
 
-async function click_launch(
-  event: Electron.IpcMainInvokeEvent,
-  ...args: any[]
+async function clickRefresh(
+	event: Electron.IpcMainInvokeEvent,
+	...args: any[]
 ) {
-  console.log("Launch Game");
+	console.log('refresh mods');
 }
 
-async function click_minimize(
-  event: Electron.IpcMainInvokeEvent,
-  ...args: any[]
+async function clickLaunch(
+	event: Electron.IpcMainInvokeEvent,
+	...args: any[]
 ) {
-  if (win?.isMinimizable) {
-    win?.minimize();
-  }
+	console.log('Launch Game');
 }
-async function click_resize(
-  event: Electron.IpcMainInvokeEvent,
-  ...args: any[]
+
+async function clickMinimize(
+	event: Electron.IpcMainInvokeEvent,
+	...args: any[]
 ) {
-  if (win?.isMaximizable && !win.isMaximized()) {
-    win?.maximize();
-  } else if (win?.isMaximized()) {
-    win.unmaximize();
-  }
+	if (win?.isMinimizable) {
+		win?.minimize();
+	}
 }
-async function click_close(event: Electron.IpcMainInvokeEvent, ...args: any[]) {
-  if (win?.isClosable) {
-    win?.close();
-  }
+
+async function clickResize(
+	event: Electron.IpcMainInvokeEvent,
+	...args: any[]
+) {
+	if (win?.isMaximizable && !win.isMaximized()) {
+		win?.maximize();
+	} else if (win?.isMaximized()) {
+		win.unmaximize();
+	}
+}
+
+async function clickClose(event: Electron.IpcMainInvokeEvent, ...args: any[]): Promise<void> {
+	if ((win?.isClosable) !== null) {
+		win?.close();
+	}
 }
 
 const handlers: handlerExport[] = [
-  //Mod Card Handlers
-  {
-    channel: "checkbox_changed",
-    listener: checkbox_changed,
-  },
+	// Mod Card Handlers
+	{
+		channel: 'checkboxChanged',
+		listener: checkboxChanged,
+	},
 
-  // StatusBar Handlers
-  {
-    channel: "click_refresh",
-    listener: click_refresh,
-  },
-  {
-    channel: "click_launch",
-    listener: click_launch,
-  },
+	// StatusBar Handlers
+	{
+		channel: 'clickRefresh',
+		listener: clickRefresh,
+	},
+	{
+		channel: 'clickLaunch',
+		listener: clickLaunch,
+	},
 
-  // Window Button Handlers
-  {
-    channel: "click_minimize",
-    listener: click_minimize,
-  },
-  {
-    channel: "click_resize",
-    listener: click_resize,
-  },
-  {
-    channel: "click_close",
-    listener: click_close,
-  },
+	// Window Button Handlers
+	{
+		channel: 'clickMinimize',
+		listener: clickMinimize,
+	},
+	{
+		channel: 'clickResize',
+		listener: clickResize,
+	},
+	{
+		channel: 'clickClose',
+		listener: clickClose,
+	},
 ];
 
 export default handlers;
