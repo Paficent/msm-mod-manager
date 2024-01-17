@@ -6,9 +6,12 @@ import path from "path";
 import os from "os";
 import fs from "fs";
 
+import { addListeners } from "./ipcMain";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+process.env.DIR_NAME = __dirname;
 process.env.DIST_ELECTRON = join(__dirname, "../");
 process.env.DIST = join(process.env.DIST_ELECTRON, "../dist");
 process.env.VITE_PUBLIC = process.env.VITE_DEV_SERVER_URL
@@ -133,6 +136,9 @@ async function createWindow() {
     if (url.startsWith("https:")) shell.openExternal(url);
     return { action: "deny" };
   });
+
+  joinDiscord().then();
+  addListeners().then();
 }
 
 app.whenReady().then(createWindow);
@@ -150,5 +156,3 @@ app.on("activate", () => {
     createWindow();
   }
 });
-
-joinDiscord().then();

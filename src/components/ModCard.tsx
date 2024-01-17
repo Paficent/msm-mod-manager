@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -16,8 +17,22 @@ const ModCard = function (props: {
   };
 }) {
   const mod = props.mod;
+  const [isChecked, setIsChecked] = useState(false);
+
+  const updateCheckbox = (checkboxKey: string, checkboxState: boolean) => {
+    window.ipcRenderer.invoke("checkbox_changed", {
+      key: checkboxKey,
+      state: checkboxState,
+    });
+  };
+
   return (
-    <Card className="w-50" placeholder={""} color="gray">
+    <Card
+      className="w-50"
+      placeholder={""}
+      color="gray"
+      key={`mod_card_${mod.name}`}
+    >
       <CardHeader
         floated={false}
         className="h-65 text-center"
@@ -35,23 +50,22 @@ const ModCard = function (props: {
         <Typography color="white" className="mb-2" placeholder={""}>
           By {mod.author} (v{mod.version})
         </Typography>
-        <img src={mod.thumbnail} alt="Mod Thumbnail" width={250} height={100} />
+        <img src={mod.thumbnail} alt="Mod Thumbnail" width={250} height={100} />{" "}
       </CardHeader>
       <CardBody className="" placeholder={""}>
-        <Typography
-          color="gray"
-          className="font-medium flex justify-left"
-          textGradient
-          placeholder={"Unknown"}
-        >
-          {mod.description}
-        </Typography>
+        {/* ... (unchanged) */}
         <div className="flex justify-left">
           <Checkbox
+            key={`mod_checkbox_${mod.name}`}
             color="blue"
             label="Select"
             crossOrigin={""}
             className=""
+            checked={isChecked}
+            onChange={() => {
+              setIsChecked(!isChecked);
+              updateCheckbox(`mod_checkbox_${mod.name}`, !isChecked);
+            }}
           ></Checkbox>
         </div>
       </CardBody>
