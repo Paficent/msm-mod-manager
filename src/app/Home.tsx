@@ -1,71 +1,47 @@
-import React, {type ReactElement} from 'react';
+import {type GameBananaData} from '@/type/game-banana';
+import React, {useEffect, useState} from 'react';
 import Layout from '@/components/Layout';
 import ModCard from '@/components/ModCard';
+import axios, {type AxiosResponse} from 'axios';
 
-const currentMods = [
-	{
-		name: 'Mod Name',
-		thumbnail:
-      'https://images.pexels.com/photos/1933239/pexels-photo-1933239.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-		author: 'Author',
-		version: '0.0.0',
-		description: 'This is a test description',
-		id: 'mod_0',
-	},
-	{
-		name: 'Hi2',
-		thumbnail:
-      'https://images.pexels.com/photos/1933239/pexels-photo-1933239.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-		author: 'Paficent',
-		version: '2.0',
-		description: 'hello',
-		id: 'mod_1',
-	},
-	{
-		name: 'Hi3',
-		thumbnail:
-      'https://images.pexels.com/photos/1933239/pexels-photo-1933239.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-		author: 'Paficent',
-		version: '2.0',
-		description: 'hello',
-		id: 'mod_2',
-	},
-	{
-		name: 'Hi4',
-		thumbnail:
-      'https://images.pexels.com/photos/1933239/pexels-photo-1933239.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-		author: 'Paficent',
-		version: '2.0',
-		description: 'hello',
-		id: 'mod_3',
-	},
-	{
-		name: 'Hi5',
-		thumbnail:
-      'https://images.pexels.com/photos/1933239/pexels-photo-1933239.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-		author: 'Paficent',
-		version: '2.0',
-		description: 'hello',
-		id: 'mod_4',
-	},
-	{
-		name: 'Hi7',
-		thumbnail:
-      'https://images.pexels.com/photos/1933239/pexels-photo-1933239.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-		author: 'Paficent',
-		version: '2.0',
-		description: 'hello',
-		id: 'mod_5',
-	},
-];
+export default function Home(): React.ReactElement {
+	const [modData, setModData] = useState<GameBananaData | undefined>(undefined);
 
-export default function Home(): ReactElement {
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				const response: AxiosResponse<GameBananaData> = await axios.get(
+					'https://gamebanana.com/apiv11/Game/9640/Subfeed?_nPage=1&_sSort=new&_csvModelInclusions=Mod',
+				);
+				setModData(response.data);
+			} catch (error) {
+				console.error('Error fetching data:', error);
+			}
+		};
+
+		void fetchData();
+	}, []);
+
+	useEffect(() => {
+		console.log('modData changed:', modData);
+	}, [modData]); // Log whenever modData changes
+
 	return (
 		<Layout>
 			<div className='grid items-center gap-4 overflow-y-scroll overflow-show font-content ss:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
-				{currentMods.map(currentMod => (
-					<ModCard mod={currentMod} key={currentMod.id}></ModCard>
+				{modData?._aRecords?.map(record => (
+					<ModCard key={record.idRow} mod={{
+						name: record._sName,
+						thumbnail: `${record._aPreviewMedia._aImages[0]._sBaseUrl}/${record._aPreviewMedia._aImages[0]._sFile}`,
+						description: '',
+						author: record._aSubmitter._sName,
+						version: record._sVersion || '???',
+					}}>
+
+					</ModCard>
+					// <p key={record.idRow}>{record._sName}</p>
 				))}
+				{!modData?._aMetadata && <p>Loading...</p>}
 			</div>
 		</Layout>
 	);
