@@ -1,4 +1,4 @@
-import React, {type ReactElement, useState} from 'react';
+import React, {useState, type ReactElement} from 'react';
 import {
 	Card,
 	CardHeader,
@@ -7,8 +7,8 @@ import {
 	Checkbox,
 } from '@material-tailwind/react';
 
-const ModCard = function (props: {
-	mod: {
+const ContentCard = function (props: {
+	info: {
 		name: string;
 		thumbnail: string;
 		description: string;
@@ -16,7 +16,7 @@ const ModCard = function (props: {
 		version: string;
 	};
 }): ReactElement {
-	const {mod} = props;
+	const {info} = props;
 	const [isChecked, setIsChecked] = useState(false);
 
 	const updateCheckbox = (checkboxKey: string, checkboxState: boolean): void => {
@@ -28,10 +28,11 @@ const ModCard = function (props: {
 
 	return (
 		<Card
-			className='w-50'
+			className='w-50 z-10'
 			placeholder={''}
 			color='gray'
-			key={`mod_card_${mod.name}`}
+			key={`mod_card_${info.name}`}
+			style={{height: '350px'}}
 		>
 			<CardHeader
 				floated={false}
@@ -39,32 +40,36 @@ const ModCard = function (props: {
 				color='gray'
 				placeholder={''}
 			>
+				<div className='relative h-32'>
+					<img
+						src={info.thumbnail}
+						alt='Mod Thumbnail'
+						className='w-full h-full block object-fill'
+					/>
+				</div>
+			</CardHeader>
+			<CardBody className='flex flex-col justify-between' placeholder={''}>
 				<Typography
 					variant='h5'
 					color='white'
 					className='mb-2'
 					placeholder={'Unknown Mod'}
 				>
-					{mod.name}
+					{info.name}
 				</Typography>
 				<Typography color='white' className='mb-2' placeholder={''}>
-        By {mod.author} (v{mod.version})
+			By {info.author} {info.version}<br/>{info.description}
 				</Typography>
-				<img src={mod.thumbnail} alt='Mod Thumbnail' width={250} height={100} />{' '}
-			</CardHeader>
-			<CardBody className='' placeholder={''}>
-				{/* ... (unchanged) */}
 				<div className='flex justify-left'>
 					<Checkbox
-						key={`mod_checkbox_${mod.name}`}
+						key={`mod_checkbox_${info.name}`}
 						color='blue'
 						label='Select'
 						crossOrigin={''}
-						className=''
 						checked={isChecked}
 						onChange={ () => {
 							setIsChecked(!isChecked);
-							updateCheckbox(`mod_checkbox_${mod.name}`, !isChecked);
+							updateCheckbox(`mod_checkbox_${info.name}`, !isChecked);
 						}}
 					></Checkbox>
 				</div>
@@ -73,4 +78,4 @@ const ModCard = function (props: {
 	);
 };
 
-export default ModCard;
+export default ContentCard;

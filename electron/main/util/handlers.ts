@@ -1,11 +1,21 @@
 import {type HandlerExport} from 'electron/types';
 import {launchGame} from './manager';
 
+const selectedCheckboxes: string[] = [];
+
 async function checkboxChanged(
 	event: Electron.IpcMainInvokeEvent,
-	...args: any[]
+	...args: [{key: string; state: boolean}]
 ) {
-	console.log(args);
+	const checkboxArgs = args[0];
+	if (selectedCheckboxes.includes(checkboxArgs.key)) {
+		const index = selectedCheckboxes.indexOf(checkboxArgs.key);
+		selectedCheckboxes.splice(index, 1);
+	} else {
+		selectedCheckboxes.push(checkboxArgs.key);
+	}
+
+	console.log(selectedCheckboxes);
 }
 
 async function clickRefresh(
