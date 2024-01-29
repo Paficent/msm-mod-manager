@@ -9,6 +9,20 @@
 	100% { transform: perspective(100px) rotateX(0) rotateY(0); }
 }
 
+::-webkit-scrollbar {
+	width: 12px; /* Adjust the width as needed */
+	height: 50px
+  }
+  
+  ::-webkit-scrollbar-thumb {
+	background-color: #434343; /* Adjust the color as needed */
+  }
+  
+  ::-webkit-scrollbar-track {
+	background-color: #262626; /* Adjust the background color as needed */
+	border-radius: 6px;
+  }
+
 .titlebar {
   -webkit-user-select: none;
   -webkit-app-region: drag;

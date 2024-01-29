@@ -2,6 +2,7 @@ import {type ModManagerSetting} from 'electron/types';
 import {writeFileSync, readFileSync, existsSync, mkdirSync} from 'node:fs';
 import {platform, homedir} from 'node:os';
 import {join} from 'node:path';
+import logger from './logger';
 
 function getAppDirectory(): string {
 	function getAppData(): string {
@@ -34,7 +35,8 @@ function checkIfSettingsExists(): void {
 
 		readSettings();
 	} catch (error) {
-		console.error('Error checking/creating settings file:', error);
+		const typedError = error as Error;
+		logger.error(`Error checking/creating settings file: ${typedError.message}`);
 	}
 }
 
@@ -55,7 +57,8 @@ function readSettings(): void {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		global.settings = JSON.parse(content.toString());
 	} catch (error) {
-		console.error('Error reading settings file:', error);
+		const typedError = error as Error;
+		logger.error(`Error reading settings file: ${typedError.message}`);
 	}
 }
 
@@ -64,7 +67,8 @@ function writeSettings(newSettings: ModManagerSetting): void {
 		global.settings = newSettings;
 		writeFileSync(settingsPath, JSON.stringify(newSettings));
 	} catch (error) {
-		console.error('Error writing settings file:', error);
+		const typedError = error as Error;
+		logger.error(`Error writing settings file: ${typedError.message}`);
 	}
 }
 

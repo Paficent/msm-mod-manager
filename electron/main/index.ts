@@ -82,7 +82,7 @@ async function createWindow(): Promise<void> {
 
 	checkIfSettingsExists();
 
-	await fixGame();
+	// Await fixGame();
 
 	if (url) {
 		await mainWindow.loadURL(url);

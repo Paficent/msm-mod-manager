@@ -9,8 +9,9 @@ import {
 import {existsSync, readFileSync} from 'node:fs';
 import {join, dirname, parse, sep, isAbsolute} from 'node:path';
 import {exec, spawn, type ChildProcess} from 'child_process';
-import {promisify} from 'util';
 import {dialog} from 'electron';
+import {promisify} from 'util';
+import logger from './logger';
 import {sync} from 'rimraf';
 
 type Item = [string, string];
@@ -46,13 +47,13 @@ async function deleteEmptyDirectories(
 		const files = await readdir(parentDir);
 
 		if (files.length === 0) {
-			console.log(
+			logger.info(
 				`Removing ${originalPath.substring(0, originalPath.lastIndexOf('/'))}`,
 			);
 			sync(parentDir);
 		}
 	} catch (err) {
-		console.error(getErrorMessage(err));
+		logger.error(getErrorMessage(err));
 	}
 }
 
@@ -78,7 +79,7 @@ async function processAssets(
 		const isConflict = fix.assets.some(asset => asset.includes(paths[1]));
 
 		if (isConflict) {
-			console.log(`Skipped conflict ${paths[1]}`);
+			logger.info(`Skipped conflict ${paths[1]}`);
 		} else {
 			const toCopy = join(modPath, 'assets', paths[0]);
 			const toReplace = join(msmDirectory, 'data', paths[1]);
@@ -87,10 +88,10 @@ async function processAssets(
 			const newBuffer = readFileSync(toCopy);
 
 			if (existsSync(toReplace)) {
-				console.log(`Replacing ${toReplaceSimplified}`);
+				logger.info(`Replacing ${toReplaceSimplified}`);
 				promises.push(copyFile(toReplace, tmpPath));
 			} else {
-				console.log(`Creating ${toReplaceSimplified}`);
+				logger.info(`Creating ${toReplaceSimplified}`);
 				promises.push(createSubdirectoriesIfNotExist(toReplace));
 			}
 
@@ -107,7 +108,7 @@ async function handleMissingFile(
 	msmFilePath: string,
 	itemName: string,
 ): Promise<void> {
-	console.log(`Removing ${itemName}`);
+	logger.info(`Removing ${itemName}`);
 
 	if (existsSync(msmFilePath)) {
 		await unlink(msmFilePath);
@@ -160,7 +161,7 @@ async function fixGame(): Promise<void> {
 					const msmFilePath = join(msmDirectory, 'data', items[1]);
 
 					if (existsSync(filePath)) {
-						console.log(`Fixing ${items[1]}`);
+						logger.info(`Fixing ${items[1]}`);
 
 						const newBuffer = await readFile(filePath);
 						await writeFile(msmFilePath, newBuffer);
@@ -168,12 +169,12 @@ async function fixGame(): Promise<void> {
 						await handleMissingFile(msmFilePath, items[1]);
 					}
 				} catch (error) {
-					console.error(getErrorMessage(error));
+					logger.error(getErrorMessage(error));
 				}
 			}),
 		);
 	} catch (error) {
-		console.error(getErrorMessage(error));
+		logger.error(getErrorMessage(error));
 	}
 }
 
@@ -194,17 +195,17 @@ async function launchGame(): Promise<void> {
 			return;
 		}
 
-		console.log('Killing MySingingMonsters.exe');
+		logger.info('Killing MySingingMonsters.exe');
 		await killProcess('MySingingMonsters.exe');
 
-		console.log('Launching MySingingMonsters.exe');
+		logger.info('Launching MySingingMonsters.exe');
 		await launchProcess(join(msmDirectory, 'MySingingMonsters.exe'));
 
 		if (settings.closeAfterLaunch) {
 			mainWindow?.close();
 		}
 	} catch (err) {
-		console.error(getErrorMessage(err));
+		logger.error(getErrorMessage(err));
 	}
 }
 
@@ -281,7 +282,7 @@ async function replaceAssets(names: string[]): Promise<void> {
 
 		await Promise.all(promises);
 	} catch (err) {
-		console.error(getErrorMessage(err));
+		logger.error(getErrorMessage(err));
 	}
 }
 

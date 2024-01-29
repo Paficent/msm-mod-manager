@@ -1,6 +1,7 @@
 import {type InstallExport, type HandlerExport} from 'electron/types';
 import {launchGame} from './manager';
 import {installMod} from './file';
+import logger from './logger';
 
 const selectedCheckboxes: string[] = [];
 
@@ -16,14 +17,14 @@ async function checkboxChanged(
 		selectedCheckboxes.push(checkboxArgs.key);
 	}
 
-	console.log(selectedCheckboxes);
+	logger.info(selectedCheckboxes);
 }
 
 async function clickRefresh(
 	event: Electron.IpcMainInvokeEvent,
 	...args: any[]
 ) {
-	console.log('refresh mods');
+	logger.info('refresh mods');
 }
 
 async function clickLaunch(

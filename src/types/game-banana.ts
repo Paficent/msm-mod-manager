@@ -51,4 +51,7 @@ type GameBananaData = [
 	},
 ];
 
-export type {GameBananaData};
+type FirstItem<T extends any[]> = T extends [infer FirstItem, ...infer RestItems] ? FirstItem : never;
+type GameBananaObject = FirstItem<GameBananaData>;
+
+export type {GameBananaData, GameBananaObject};
