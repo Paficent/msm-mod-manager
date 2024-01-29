@@ -1,15 +1,15 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import Home from '@/app/Home';
-
+import '@/app/globals.css';
 import {ThemeProvider} from '@material-tailwind/react';
 
-import '@/app/globals.css';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
+import App from '@/app/App';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
 		<ThemeProvider>
-			<Home />
+			<App />
 		</ThemeProvider>
 	</React.StrictMode>,
 );

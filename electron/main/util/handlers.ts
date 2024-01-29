@@ -1,5 +1,6 @@
-import {type HandlerExport} from 'electron/types';
+import {type InstallExport, type HandlerExport} from 'electron/types';
 import {launchGame} from './manager';
+import {installMod} from './file';
 
 const selectedCheckboxes: string[] = [];
 
@@ -58,6 +59,16 @@ async function clickClose(event: Electron.IpcMainInvokeEvent, ...args: any[]): P
 	}
 }
 
+async function clickInstall(event: Electron.IpcMainInvokeEvent, ...args: [InstallExport]): Promise<void> {
+	const info = args[0];
+	function formatString(str: string) {
+		return encodeURI(str.toLowerCase().replaceAll(' ', '-'));
+	}
+
+	const savePath = `${formatString(info.author)}__${formatString(info.name)}`;
+	await installMod(savePath, info);
+}
+
 const handlers: HandlerExport[] = [
 	// Mod Card Handlers
 	{
@@ -87,6 +98,12 @@ const handlers: HandlerExport[] = [
 	{
 		channel: 'clickClose',
 		listener: clickClose,
+	},
+
+	// Others
+	{
+		channel: 'clickInstall',
+		listener: clickInstall,
 	},
 ];
 

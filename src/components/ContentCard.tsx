@@ -4,7 +4,8 @@ import {
 	CardHeader,
 	CardBody,
 	Typography,
-	Checkbox,
+	Button,
+	CardFooter,
 } from '@material-tailwind/react';
 
 const ContentCard = function (props: {
@@ -14,6 +15,7 @@ const ContentCard = function (props: {
 		description: string;
 		author: string;
 		version: string;
+		id: number;
 	};
 }): ReactElement {
 	const {info} = props;
@@ -28,11 +30,10 @@ const ContentCard = function (props: {
 
 	return (
 		<Card
-			className='w-50 z-10'
+			className='w-50 z-10 h-[400px]'
 			placeholder={''}
 			color='gray'
 			key={`mod_card_${info.name}`}
-			style={{height: '350px'}}
 		>
 			<CardHeader
 				floated={false}
@@ -60,20 +61,17 @@ const ContentCard = function (props: {
 				<Typography color='white' className='mb-2' placeholder={''}>
 			By {info.author} {info.version}<br/>{info.description}
 				</Typography>
-				<div className='flex justify-left'>
-					<Checkbox
-						key={`mod_checkbox_${info.name}`}
-						color='blue'
-						label='Select'
-						crossOrigin={''}
-						checked={isChecked}
-						onChange={ () => {
-							setIsChecked(!isChecked);
-							updateCheckbox(`mod_checkbox_${info.name}`, !isChecked);
-						}}
-					></Checkbox>
-				</div>
 			</CardBody>
+			<CardFooter placeholder='' className='mt-auto self-center'>
+				<div>
+					<Button variant='gradient' placeholder='' color='blue-gray' onClick={() => {
+						console.log(info.id);
+						void window.ipcRenderer.invoke('clickInstall', info);
+					}}>
+						Install
+					</Button>
+				</div>
+			</CardFooter>
 		</Card>
 	);
 };

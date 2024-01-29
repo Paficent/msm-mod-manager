@@ -9,12 +9,15 @@ import {
 import {existsSync, readFileSync} from 'node:fs';
 import {join, dirname, parse, sep, isAbsolute} from 'node:path';
 import {exec, spawn, type ChildProcess} from 'child_process';
+import {promisify} from 'util';
 import {dialog} from 'electron';
 import {sync} from 'rimraf';
 
 type Item = [string, string];
 type Asset = [string, string];
 type Fix = {assets: Asset[]};
+
+const execAsync = promisify(exec);
 
 async function createSubdirectoriesIfNotExist(dirPath: string): Promise<void> {
 	const subdirectories = parse(dirPath).dir.split(sep).slice(1);
@@ -113,6 +116,19 @@ async function handleMissingFile(
 	await deleteEmptyDirectories(msmFilePath, itemName);
 }
 
+async function getMsmPath(): Promise<string | false> {
+	const registryKeyPath = 'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App 1419170';
+
+	try {
+		const {stdout} = await execAsync(`reg query "${registryKeyPath}" /v InstallLocation`);
+		const match = /InstallLocation\s+REG_SZ\s+(.+)/.exec(stdout);
+		const installLocation = match ? match[1] : '';
+		return installLocation;
+	} catch (error) {
+		return false;
+	}
+}
+
 function getErrorMessage(error: any): string {
 	return error instanceof Error ? error.message : String(error);
 }
@@ -120,6 +136,10 @@ function getErrorMessage(error: any): string {
 async function fixGame(): Promise<void> {
 	const tmpDirectory = join(appDirectory, 'tmp');
 	const fixFilePath = join(tmpDirectory, 'fix.json');
+	const msmDirectory = await getMsmPath();
+	if (typeof (msmDirectory) === 'boolean') {
+		return;
+	}
 
 	try {
 		if (!existsSync(tmpDirectory)) {
@@ -137,7 +157,7 @@ async function fixGame(): Promise<void> {
 			assets.map(async (items: Item) => {
 				try {
 					const filePath = join(tmpDirectory, items[0]);
-					const msmFilePath = join(settings.msmDirectory, 'data', items[1]);
+					const msmFilePath = join(msmDirectory, 'data', items[1]);
 
 					if (existsSync(filePath)) {
 						console.log(`Fixing ${items[1]}`);
@@ -158,16 +178,17 @@ async function fixGame(): Promise<void> {
 }
 
 async function launchGame(): Promise<void> {
+	const msmDirectory = await getMsmPath();
 	try {
 		if (
 			!mainWindow
-|| settings.msmDirectory === ''
-|| !existsSync(settings.msmDirectory)
+			|| msmDirectory === false
+			|| !existsSync(msmDirectory)
 		) {
 			const errorMessage
-= settings.msmDirectory === ''
-	? 'Couldn\'t find \'MySingingMonsters\' folder, please input the \'MySingingMonsters\' folder in the settings window'
-	: 'The path to \'MySingingMonsters\' has changed.\nInput the \'MySingingMonsters\' path in the settings menu.';
+			= msmDirectory === false
+				? 'Couldn\'t find \'MySingingMonsters\' folder, please input the \'MySingingMonsters\' folder in the settings window'
+				: 'The path to \'MySingingMonsters\' has changed.\nInput the \'MySingingMonsters\' path in the settings menu.';
 
 			await showErrorDialog('Error', errorMessage);
 			return;
@@ -177,7 +198,7 @@ async function launchGame(): Promise<void> {
 		await killProcess('MySingingMonsters.exe');
 
 		console.log('Launching MySingingMonsters.exe');
-		await launchProcess(join(settings.msmDirectory, 'MySingingMonsters.exe'));
+		await launchProcess(join(msmDirectory, 'MySingingMonsters.exe'));
 
 		if (settings.closeAfterLaunch) {
 			mainWindow?.close();
