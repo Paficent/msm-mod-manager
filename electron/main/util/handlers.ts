@@ -1,5 +1,5 @@
 import {type InstallExport, type HandlerExport} from 'electron/types';
-import {launchGame} from './manager';
+import {launchGame} from './backend';
 import {installMod} from './file';
 import logger from './logger';
 

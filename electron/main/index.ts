@@ -8,7 +8,7 @@ import axios from 'axios';
 
 import {checkIfSettingsExists} from './util/settings';
 import {addListeners} from './ipcMain';
-import {fixGame} from './util/manager';
+import {fixGame} from './util/backend';
 
 declare global {
 	var mainWindow: undefined | BrowserWindow;
